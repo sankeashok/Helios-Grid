@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # Helios-Grid Local UI
+  helios-grid:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=local
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./models:/app/models
+    networks:
+      - helios-network
+    restart: unless-stopped
+    container_name: helios-grid-ui
+
+  # MLflow for experiment tracking
+  mlflow:
+    image: python:3.9-slim
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+    command: >
+      bash -c "
+        pip install mlflow[extras] &&
+        mlflow server 
+        --backend-store-uri sqlite:///mlflow/mlflow.db 
+        --default-artifact-root /mlflow/artifacts 
+        --host 0.0.0.0 
+        --port 5000
+      "
+    networks:
+      - helios-network
+    restart: unless-stopped
+    container_name: helios-mlflow
+
+  # Jupyter for development
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=helios123
+    volumes:
+      - ./notebooks:/home/jovyan/work/notebooks
+      - ./src:/home/jovyan/work/src
+      - ./data:/home/jovyan/work/data
+    networks:
+      - helios-network
+    restart: unless-stopped
+    container_name: helios-jupyter
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - helios-network
+    restart: unless-stopped
+    container_name: helios-prometheus
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=helios123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - helios-network
+    restart: unless-stopped
+    container_name: helios-grafana
+
+volumes:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  helios-network:
+    driver: bridge
