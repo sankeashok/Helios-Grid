@@ -1,6 +1,6 @@
 # ☀️ **Helios-Grid: Enterprise Energy Consumption MLOps Pipeline**
 
-![Helios-Grid](helios-grid-thumbnail.png)
+![Helios-Grid Thumbnail](https://raw.githubusercontent.com/sankeashok/Helios-Grid/main/helios-grid-thumbnail.png)
 
 [![Azure](https://img.shields.io/badge/Azure-MLOps-blue?logo=microsoft-azure)](https://azure.microsoft.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-green?logo=python)](https://python.org/)
