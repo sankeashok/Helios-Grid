@@ -1,0 +1,109 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f23;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="titleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1d4ed8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    
+    <pattern id="gridPattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(59, 130, 246, 0.1)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Grid Pattern -->
+  <rect width="1200" height="630" fill="url(#gridPattern)" opacity="0.5"/>
+  
+  <!-- Sun Icon -->
+  <circle cx="140" cy="140" r="60" fill="url(#sunGradient)" opacity="0.9">
+    <animate attributeName="r" values="60;65;60" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <text x="140" y="155" text-anchor="middle" font-size="40" fill="white">☀️</text>
+  
+  <!-- Main Title -->
+  <text x="250" y="180" font-family="Arial, sans-serif" font-size="72" font-weight="900" fill="url(#titleGradient)">Helios-Grid</text>
+  
+  <!-- Subtitle -->
+  <text x="250" y="230" font-family="Arial, sans-serif" font-size="28" font-weight="600" fill="#94a3b8">Enterprise Energy Consumption MLOps Pipeline</text>
+  <text x="250" y="270" font-family="Arial, sans-serif" font-size="24" font-weight="500" fill="#64748b">Azure-Native • Production-Ready • Staff-Level Engineering</text>
+  
+  <!-- Energy Visualization Bars -->
+  <g transform="translate(850, 200)">
+    <rect x="0" y="0" width="250" height="20" rx="10" fill="rgba(59, 130, 246, 0.2)"/>
+    <rect x="0" y="0" width="212" height="20" rx="10" fill="#3b82f6">
+      <animate attributeName="width" values="212;225;212" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    
+    <rect x="0" y="35" width="250" height="20" rx="10" fill="rgba(59, 130, 246, 0.2)"/>
+    <rect x="0" y="35" width="230" height="20" rx="10" fill="#1d4ed8">
+      <animate attributeName="width" values="230;240;230" dur="2.3s" repeatCount="indefinite"/>
+    </rect>
+    
+    <rect x="0" y="70" width="250" height="20" rx="10" fill="rgba(59, 130, 246, 0.2)"/>
+    <rect x="0" y="70" width="195" height="20" rx="10" fill="#2563eb">
+      <animate attributeName="width" values="195;210;195" dur="1.8s" repeatCount="indefinite"/>
+    </rect>
+    
+    <rect x="0" y="105" width="250" height="20" rx="10" fill="rgba(59, 130, 246, 0.2)"/>
+    <rect x="0" y="105" width="237" height="20" rx="10" fill="#1e40af">
+      <animate attributeName="width" values="237;245;237" dur="2.5s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  
+  <!-- Tech Stack Badges -->
+  <g transform="translate(80, 450)">
+    <rect x="0" y="0" width="80" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="40" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">Azure ML</text>
+    
+    <rect x="90" y="0" width="70" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="125" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">FastAPI</text>
+    
+    <rect x="170" y="0" width="70" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="205" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">XGBoost</text>
+    
+    <rect x="250" y="0" width="65" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="282" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">MLflow</text>
+    
+    <rect x="325" y="0" width="60" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="355" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">Docker</text>
+    
+    <rect x="395" y="0" width="85" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="437" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">Prometheus</text>
+    
+    <rect x="490" y="0" width="65" height="30" rx="15" fill="rgba(59, 130, 246, 0.2)" stroke="rgba(59, 130, 246, 0.4)"/>
+    <text x="522" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="600" fill="#60a5fa">Grafana</text>
+  </g>
+  
+  <!-- GitHub Badge -->
+  <g transform="translate(850, 550)">
+    <rect x="0" y="0" width="280" height="40" rx="20" fill="rgba(255, 255, 255, 0.1)" stroke="rgba(255, 255, 255, 0.2)"/>
+    <text x="140" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="600" fill="white">github.com/sankeashok/Helios-Grid</text>
+  </g>
+  
+  <!-- Floating Elements -->
+  <circle cx="950" cy="350" r="30" fill="rgba(59, 130, 246, 0.1)">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-10; 0,0" dur="6s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="1050" cy="200" r="20" fill="rgba(59, 130, 246, 0.1)">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-15; 0,0" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="500" cy="480" r="40" fill="rgba(59, 130, 246, 0.1)">
+    <animateTransform attributeName="transform" type="translate" values="0,0; 0,-8; 0,0" dur="8s" repeatCount="indefinite"/>
+  </circle>
+</svg>

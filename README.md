@@ -1,5 +1,7 @@
 # ☀️ **Helios-Grid: Enterprise Energy Consumption MLOps Pipeline**
 
+![Helios-Grid](helios-grid-thumbnail.png)
+
 [![Azure](https://img.shields.io/badge/Azure-MLOps-blue?logo=microsoft-azure)](https://azure.microsoft.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-green?logo=python)](https://python.org/)
 [![MLflow](https://img.shields.io/badge/MLflow-Tracking-orange?logo=mlflow)](https://mlflow.org/)
@@ -76,9 +78,9 @@ cd Helios-Grid
 ### **2. Environment Setup**
 ```bash
 # Create virtual environment
-python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+python -m venv helios-grid-env
+helios-grid-env\Scripts\activate  # Windows
+# source helios-grid-env/bin/activate  # Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
