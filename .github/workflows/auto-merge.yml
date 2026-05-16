@@ -1,0 +1,128 @@
+name: 🔄 Auto-merge Feature Branches
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+jobs:
+  auto-merge:
+    name: 🔄 Auto-merge Feature Branch
+    runs-on: ubuntu-latest
+    if: |
+      startsWith(github.head_ref, 'feature/') &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⏳ Wait for CI Checks
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: '🔍 Code Quality & Security'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+      - name: ⏳ Wait for Python Tests
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: '🐍 Python Tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+      - name: ⏳ Wait for React Tests
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: '⚛️ React Frontend Tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+      - name: ⏳ Wait for Docker Build
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          check-name: '🐳 Docker Build & Security'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+
+      - name: ✅ Enable Auto-merge
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --squash \
+            --auto \
+            --delete-branch \
+            --subject "🚀 Auto-merge: ${{ github.event.pull_request.title }}" \
+            --body "✅ All CI/CD checks passed. Auto-merging feature branch."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🎉 Auto-merge Enabled!
+              
+              ✅ **All CI/CD checks passed successfully!**
+              
+              ### 🔍 Completed Checks:
+              - ✅ Code Quality & Security Scan
+              - ✅ Python Tests (Multiple Versions)
+              - ✅ React Frontend Tests & Build
+              - ✅ Docker Build & Security Scan
+              
+              ### 🚀 Next Steps:
+              - This PR will be automatically merged when all required checks pass
+              - Feature branch will be automatically deleted after merge
+              - A new release will be created if merging to main branch
+              
+              **Merge Method**: Squash and merge
+              **Branch Cleanup**: Automatic deletion
+              
+              ---
+              *Powered by Helios-Grid CI/CD Pipeline* ⚡`
+            })
+
+  # 🚨 Handle Auto-merge Failure
+  auto-merge-failure:
+    name: 🚨 Handle Auto-merge Failure
+    runs-on: ubuntu-latest
+    needs: auto-merge
+    if: failure()
+    steps:
+      - name: 📊 Comment on Failure
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ Auto-merge Failed
+              
+              **One or more CI/CD checks failed.**
+              
+              ### 🔍 Please Check:
+              - ❌ Code Quality & Security Issues
+              - ❌ Test Failures
+              - ❌ Build Errors
+              - ❌ Security Vulnerabilities
+              
+              ### 🛠️ Next Steps:
+              1. Review the failed checks in the "Checks" tab
+              2. Fix any issues in your feature branch
+              3. Push new commits to trigger CI/CD again
+              4. Auto-merge will retry once all checks pass
+              
+              ---
+              *Manual review may be required for complex issues* 🔍`
+            })
