@@ -87,28 +87,34 @@ pip install -r requirements.txt
 pip install kagglehub
 ```
 
-### **3. Configure Azure Resources**
+### **3. Configure Kaggle & Azure Resources**
 ```bash
+# Setup Kaggle credentials (required for dataset access)
+# Get your API key from: https://www.kaggle.com/settings/account
+export KAGGLE_USERNAME="your-kaggle-username"
+export KAGGLE_KEY="your-kaggle-key"
+
 # Login to Azure
 az login
 
 # Setup Azure infrastructure
 python scripts/setup_azure_resources.py \
     --subscription-id "your-subscription-id" \
-    --kaggle-username "your-kaggle-username" \
-    --kaggle-key "your-kaggle-key"
+    --kaggle-username "$KAGGLE_USERNAME" \
+    --kaggle-key "$KAGGLE_KEY"
 ```
 
 ### **4. Run Complete Pipeline**
 ```bash
 # Execute end-to-end MLOps pipeline
+# Downloads Kaggle dataset: robikscube/hourly-energy-consumption
 python run_energy_pipeline.py
 
 # Or run individual steps
-python run_energy_pipeline.py --step data        # Data ingestion
-python run_energy_pipeline.py --step features    # Feature engineering  
-python run_energy_pipeline.py --step training    # Model training
-python run_energy_pipeline.py --step evaluation  # Model evaluation
+python run_energy_pipeline.py --step data        # Download & process Kaggle data
+python run_energy_pipeline.py --step features    # Time series feature engineering  
+python run_energy_pipeline.py --step training    # Multi-algorithm model training
+python run_energy_pipeline.py --step evaluation  # Model evaluation & validation
 ```
 
 ### **5. Launch Dashboard**
@@ -125,10 +131,11 @@ open http://localhost:8000
 ## 📊 **Pipeline Components**
 
 ### **🔌 Energy Data Pipeline**
-- **Data Source**: Kaggle hourly energy consumption dataset
-- **Processing**: Time series feature engineering with lag variables
-- **Storage**: Azure Blob Storage with automated versioning
-- **Validation**: Great Expectations data quality checks
+- **Data Source**: [Hourly Energy Consumption Dataset](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/data) by [@robikscube](https://www.kaggle.com/robikscube) on Kaggle
+- **Dataset Details**: 10+ years of hourly energy consumption data from PJM Interconnection LLC
+- **Processing**: Time series feature engineering with lag variables and seasonal patterns
+- **Storage**: Azure Blob Storage with automated versioning and data lineage
+- **Validation**: Great Expectations data quality checks and anomaly detection
 
 ### **⚡ Feature Engineering**
 - **Temporal Features**: Cyclical encoding for seasonal patterns
@@ -267,10 +274,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🏆 **Acknowledgments**
 
-- **Azure ML Team** for comprehensive cloud ML services
-- **MLflow Community** for experiment tracking capabilities
-- **FastAPI Team** for the excellent API framework
-- **Kaggle Community** for providing quality datasets
+### **🎯 Data Source Credits**
+- **[@robikscube](https://www.kaggle.com/robikscube)** for the [Hourly Energy Consumption Dataset](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/data) on Kaggle
+- **PJM Interconnection LLC** for providing the original energy consumption data
+- **Kaggle Community** for maintaining high-quality, accessible datasets
+
+### **🛠️ Technology Credits**
+- **Azure ML Team** for comprehensive cloud ML services and enterprise capabilities
+- **MLflow Community** for experiment tracking and model registry capabilities
+- **FastAPI Team** for the excellent, high-performance API framework
+- **Shadcn/UI & Aceternity UI** for modern, accessible component libraries
+- **Open Source Community** for the incredible ecosystem of ML and web technologies
 
 ---
 
