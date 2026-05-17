@@ -387,8 +387,27 @@ jobs:
           
           echo "Release report generated: $REPORT_FILE"
 
-      - name: 📧 Send Email Notification to Ashok
+      - name: 📧 Email Notification Status
+        run: |
+          echo "📧 EMAIL NOTIFICATION STATUS"
+          echo "============================="
+          if [ -z "${{ secrets.EMAIL_USERNAME }}" ] || [ -z "${{ secrets.EMAIL_PASSWORD }}" ]; then
+            echo "⚠️  Email secrets not configured - skipping email notifications"
+            echo "📋 To enable email notifications:"
+            echo "   1. Add EMAIL_USERNAME secret with your Gmail address"
+            echo "   2. Add EMAIL_PASSWORD secret with Gmail App Password"
+            echo "   3. See EMAIL_NOTIFICATION_SETUP.md for detailed instructions"
+            echo "✅ Release report generated successfully (see artifacts)"
+          else
+            echo "✅ Email secrets configured - sending notifications..."
+          fi
+
+      - name: 📧 Send Email Notification (if configured)
+        if: env.EMAIL_USERNAME != '' && env.EMAIL_PASSWORD != ''
         uses: dawidd6/action-send-mail@v3
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -503,13 +522,25 @@ jobs:
 
       - name: 🎯 Notification Summary
         run: |
-          echo "📧 EMAIL NOTIFICATIONS SENT SUCCESSFULLY!"
-          echo "================================================"
-          echo "✅ Primary Email: sanke.ashokk@gmail.com"
-          echo "✅ Secondary Email: ashok.sanke@outlook.com"
-          echo "📄 Release Report: Attached as Markdown file"
+          echo "📧 NOTIFICATION STATUS SUMMARY"
+          echo "==============================================="
+          if [ -z "${{ secrets.EMAIL_USERNAME }}" ] || [ -z "${{ secrets.EMAIL_PASSWORD }}" ]; then
+            echo "⚠️  Email notifications: SKIPPED (secrets not configured)"
+            echo "📋 Release report: ✅ GENERATED (available in artifacts)"
+            echo "📄 Report file: release-report-v${{ github.run_number }}.md"
+            echo ""
+            echo "🔧 To enable email notifications:"
+            echo "   1. Go to: https://github.com/sankeashok/Helios-Grid/settings/secrets/actions"
+            echo "   2. Add EMAIL_USERNAME and EMAIL_PASSWORD secrets"
+            echo "   3. See EMAIL_NOTIFICATION_SETUP.md for instructions"
+          else
+            echo "✅ Email notifications: SENT SUCCESSFULLY"
+            echo "✅ Primary Email: sanke.ashokk@gmail.com"
+            echo "✅ Secondary Email: ashok.sanke@outlook.com"
+            echo "📄 Release Report: Attached as Markdown file"
+          fi
           echo "🔗 Pipeline URL: https://github.com/sankeashok/Helios-Grid/actions/runs/${{ github.run_id }}"
-          echo "================================================"
+          echo "==============================================="
           echo "🚀 Helios-Grid v${{ github.run_number }} deployment notifications complete!"
 
   # ============================================================================
