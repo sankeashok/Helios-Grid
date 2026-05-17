@@ -3,19 +3,20 @@ Feature Engineering Pipeline with Azure ML Integration
 Handles feature creation, selection, and transformation with MLflow tracking
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
-from sklearn.feature_selection import SelectKBest, f_regression
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-import mlflow
-import mlflow.sklearn
-from typing import List, Dict, Any, Tuple
 import logging
 from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
+
 import joblib
+import mlflow
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

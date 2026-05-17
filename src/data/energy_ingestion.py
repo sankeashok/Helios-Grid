@@ -3,21 +3,22 @@ Energy Consumption MLOps Pipeline - Enhanced Data Ingestion
 Uses existing Kaggle credentials for hourly energy consumption dataset
 """
 
-import os
+import json
 import logging
+import os
 import shutil
-from pathlib import Path
-from typing import Optional, Dict, Any, List
-import pandas as pd
-import numpy as np
-import kagglehub
-from azure.storage.blob import BlobServiceClient
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-import great_expectations as gx
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import json
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import great_expectations as gx
+import kagglehub
+import numpy as np
+import pandas as pd
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+from azure.storage.blob import BlobServiceClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -17,13 +17,15 @@ def create_optimized_thumbnail():
     try:
         # Try to import required libraries
         try:
-            from PIL import Image, ImageDraw, ImageFont
             import io
+
+            from PIL import Image, ImageDraw, ImageFont
         except ImportError:
             print("📦 Installing required packages...")
             os.system("pip install Pillow")
-            from PIL import Image, ImageDraw, ImageFont
             import io
+
+            from PIL import Image, ImageDraw, ImageFont
 
         # Create thumbnail dimensions (GitHub social preview size)
         width, height = 1200, 630

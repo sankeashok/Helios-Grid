@@ -3,26 +3,27 @@ Production FastAPI Application for ML Model Serving
 Includes Azure integration, monitoring, and security features
 """
 
-import os
 import logging
-from typing import List, Dict, Any, Optional
+import os
 from datetime import datetime
-import pandas as pd
-import numpy as np
-from fastapi import FastAPI, HTTPException, Depends, Security, BackgroundTasks
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, List, Optional
+
 import joblib
 import mlflow
 import mlflow.pyfunc
+import numpy as np
+import pandas as pd
+import prometheus_client
+import uvicorn
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.monitor.opentelemetry import configure_azure_monitor
-import prometheus_client
-from prometheus_client import Counter, Histogram, Gauge
-import uvicorn
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Security
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from prometheus_client import Counter, Gauge, Histogram
+from pydantic import BaseModel, Field, validator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

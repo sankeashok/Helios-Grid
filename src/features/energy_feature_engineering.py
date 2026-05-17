@@ -3,21 +3,23 @@ Energy Consumption Feature Engineering Pipeline
 Specialized feature engineering for time series energy prediction
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler
-from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+import logging
+import warnings
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
 import mlflow
 import mlflow.sklearn
-from typing import List, Dict, Any, Tuple, Optional
-import logging
-from dataclasses import dataclass
-import joblib
-from datetime import datetime, timedelta
-import warnings
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.compose import ColumnTransformer
+from sklearn.feature_selection import (SelectKBest, f_regression,
+                                       mutual_info_regression)
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 
 warnings.filterwarnings("ignore")
 

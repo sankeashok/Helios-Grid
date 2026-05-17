@@ -3,25 +3,26 @@ Enterprise Security Module - Zero Trust Architecture
 Implements comprehensive security hardening with SAST/DAST integration
 """
 
-import os
+import asyncio
 import hashlib
 import hmac
-import jwt
-import secrets
+import ipaddress
 import logging
-from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime, timedelta
+import os
+import re
+import secrets
+import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
-import asyncio
+from functools import wraps
+from typing import Any, Dict, List, Optional, Tuple
+
 import aiohttp
-from cryptography.fernet import Fernet
+import jwt
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-import re
-import ipaddress
-from functools import wraps
-import time
+from cryptography.fernet import Fernet
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

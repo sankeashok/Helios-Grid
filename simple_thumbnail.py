@@ -3,9 +3,10 @@ Helios-Grid Thumbnail Generator - Simple Version
 Creates optimized PNG under 300KB for GitHub social preview
 """
 
-import os
-from PIL import Image, ImageDraw, ImageFont
 import io
+import os
+
+from PIL import Image, ImageDraw, ImageFont
 
 
 def create_thumbnail():

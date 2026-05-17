@@ -3,35 +3,33 @@ Energy Consumption Model Training Pipeline
 Specialized for time series energy prediction with multiple algorithms
 """
 
-import os
+import json
 import logging
-from typing import Dict, Any, Tuple, List, Optional
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.linear_model import ElasticNet, Ridge
-from sklearn.metrics import (
-    mean_squared_error,
-    mean_absolute_error,
-    r2_score,
-    mean_absolute_percentage_error,
-)
-from sklearn.model_selection import cross_val_score, TimeSeriesSplit
-import xgboost as xgb
+import os
+import warnings
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
 import lightgbm as lgb
-from lightgbm import LGBMRegressor
-import optuna
 import mlflow
+import mlflow.lightgbm
 import mlflow.sklearn
 import mlflow.xgboost
-import mlflow.lightgbm
-from azureml.core import Workspace, Experiment, Run
+import numpy as np
+import optuna
+import pandas as pd
+import xgboost as xgb
+from azureml.core import Experiment, Run, Workspace
 from azureml.core.model import Model
-import joblib
-from dataclasses import dataclass
-import json
-from datetime import datetime
-import warnings
+from lightgbm import LGBMRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import ElasticNet, Ridge
+from sklearn.metrics import (mean_absolute_error,
+                             mean_absolute_percentage_error,
+                             mean_squared_error, r2_score)
+from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 
 warnings.filterwarnings("ignore")
 

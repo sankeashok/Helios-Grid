@@ -3,17 +3,19 @@ Azure Resource Setup Script
 Automates the creation of Azure resources for MLOps pipeline
 """
 
-import os
 import json
 import logging
-from typing import Dict, Any
+import os
+from typing import Any, Dict
+
+import click
 from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+from azure.mgmt.keyvault import KeyVaultManagementClient
+from azure.mgmt.machinelearningservices import \
+    MachineLearningServicesMgmtClient
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.storage import StorageManagementClient
-from azure.mgmt.keyvault import KeyVaultManagementClient
-from azure.mgmt.machinelearningservices import MachineLearningServicesMgmtClient
-from azure.keyvault.secrets import SecretClient
-import click
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -1,10 +1,11 @@
+import json
+from datetime import datetime
+
 import gradio as gr
-import requests
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import datetime
-import json
+import requests
 
 
 # Simple prediction function (fallback when API is not available)

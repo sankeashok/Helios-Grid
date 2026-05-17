@@ -3,51 +3,41 @@ Enterprise FastAPI Application - Staff-Level Engineering Implementation
 Integrates all council recommendations: Security, UI, Edge Cases, Performance
 """
 
-import os
+import asyncio
 import logging
-from typing import Dict, Any, Optional, List
+import os
+# Import our enterprise modules
+import sys
+from contextlib import asynccontextmanager
 from datetime import datetime
-import pandas as pd
-import numpy as np
-from fastapi import (
-    FastAPI,
-    HTTPException,
-    Depends,
-    Security,
-    BackgroundTasks,
-    Request,
-    Response,
-)
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel, Field, validator
+from typing import Any, Dict, List, Optional
+
 import joblib
 import mlflow
 import mlflow.pyfunc
+import numpy as np
+import pandas as pd
+import prometheus_client
+import uvicorn
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.monitor.opentelemetry import configure_azure_monitor
-import prometheus_client
-from prometheus_client import Counter, Histogram, Gauge
-import uvicorn
-import asyncio
-from contextlib import asynccontextmanager
-
-# Import our enterprise modules
-import sys
+from fastapi import (BackgroundTasks, Depends, FastAPI, HTTPException, Request,
+                     Response, Security)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
+from prometheus_client import Counter, Gauge, Histogram
+from pydantic import BaseModel, Field, validator
 
 sys.path.append(".")
 from src.core.enterprise_architecture import BaseMLOpsComponent, SystemState
-from src.security.enterprise_security import (
-    SecurityValidator,
-    JWTManager,
-    require_permission,
-    require_mfa,
-)
-from src.testing.edge_case_handler import EdgeCaseHandler, CircuitBreaker, RetryPolicy
+from src.security.enterprise_security import (JWTManager, SecurityValidator,
+                                              require_mfa, require_permission)
+from src.testing.edge_case_handler import (CircuitBreaker, EdgeCaseHandler,
+                                           RetryPolicy)
 
 # Configure logging and monitoring
 logging.basicConfig(level=logging.INFO)
