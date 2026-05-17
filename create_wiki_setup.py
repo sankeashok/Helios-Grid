@@ -8,9 +8,10 @@ import os
 import shutil
 from pathlib import Path
 
+
 def create_wiki_instructions():
     """Create instructions for populating GitHub wiki"""
-    
+
     instructions = """
 # GitHub Wiki Setup Instructions for Helios-Grid
 
@@ -217,16 +218,17 @@ Content here...
 
 **🚀 Your Helios-Grid project will have world-class documentation once the wiki is populated!**
 """
-    
+
     return instructions
+
 
 def create_sample_wiki_pages():
     """Create sample wiki pages for the most important missing pages"""
-    
+
     # Create additional wiki directory
     wiki_dir = Path("docs/wiki")
     wiki_dir.mkdir(exist_ok=True)
-    
+
     # First-Run.md
     first_run_content = """# 🚀 First Run Guide
 
@@ -260,7 +262,7 @@ You've successfully run your first energy prediction with Helios-Grid!
 ---
 **Last Updated**: January 2025
 """
-    
+
     # API-Documentation.md
     api_docs_content = """# 📚 API Documentation
 
@@ -307,7 +309,7 @@ POST /batch_predict
 ---
 **Last Updated**: January 2025
 """
-    
+
     # System-Architecture.md
     architecture_content = """# 🏗️ System Architecture
 
@@ -368,51 +370,53 @@ Helios-Grid follows a microservices architecture with enterprise-grade component
 ---
 **Last Updated**: January 2025
 """
-    
+
     # Write the sample pages
     sample_pages = {
         "First-Run.md": first_run_content,
         "API-Documentation.md": api_docs_content,
-        "System-Architecture.md": architecture_content
+        "System-Architecture.md": architecture_content,
     }
-    
+
     for filename, content in sample_pages.items():
         file_path = wiki_dir / filename
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-    
+
     return list(sample_pages.keys())
+
 
 def main():
     """Main function to create wiki setup materials"""
-    
+
     print("Creating GitHub Wiki Setup Materials...")
-    
+
     # Create instructions
     instructions = create_wiki_instructions()
-    
+
     # Write instructions to file
-    with open("WIKI_SETUP_INSTRUCTIONS.md", 'w', encoding='utf-8') as f:
+    with open("WIKI_SETUP_INSTRUCTIONS.md", "w", encoding="utf-8") as f:
         f.write(instructions)
-    
+
     # Create sample wiki pages
     created_pages = create_sample_wiki_pages()
-    
+
     print("Wiki setup materials created!")
     print("\nFiles created:")
     print("- WIKI_SETUP_INSTRUCTIONS.md (Complete setup guide)")
-    
+
     print("\nAdditional wiki pages created:")
     for page in created_pages:
         print(f"- docs/wiki/{page}")
-    
+
     print("\nNext steps:")
     print("1. Read WIKI_SETUP_INSTRUCTIONS.md")
     print("2. Go to https://github.com/sankeashok/Helios-Grid/wiki")
     print("3. Create pages by copying content from docs/wiki/ files")
     print("4. Start with Home, Installation-Guide, and Dataset-Documentation")
-    
+
     print("\nYour Helios-Grid wiki will be world-class once populated!")
+
 
 if __name__ == "__main__":
     main()
