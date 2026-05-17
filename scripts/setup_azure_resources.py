@@ -12,8 +12,7 @@ import click
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.mgmt.keyvault import KeyVaultManagementClient
-from azure.mgmt.machinelearningservices import \
-    MachineLearningServicesMgmtClient
+from azure.mgmt.machinelearningservices import MachineLearningServicesMgmtClient
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.storage import StorageManagementClient
 

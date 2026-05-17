@@ -26,9 +26,12 @@ from azureml.core.model import Model
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNet, Ridge
-from sklearn.metrics import (mean_absolute_error,
-                             mean_absolute_percentage_error,
-                             mean_squared_error, r2_score)
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    mean_squared_error,
+    r2_score,
+)
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 
 warnings.filterwarnings("ignore")

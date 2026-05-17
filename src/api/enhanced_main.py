@@ -6,6 +6,7 @@ Integrates all council recommendations: Security, UI, Edge Cases, Performance
 import asyncio
 import logging
 import os
+
 # Import our enterprise modules
 import sys
 from contextlib import asynccontextmanager
@@ -22,8 +23,15 @@ import uvicorn
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.monitor.opentelemetry import configure_azure_monitor
-from fastapi import (BackgroundTasks, Depends, FastAPI, HTTPException, Request,
-                     Response, Security)
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+    Response,
+    Security,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -34,10 +42,13 @@ from pydantic import BaseModel, Field, validator
 
 sys.path.append(".")
 from src.core.enterprise_architecture import BaseMLOpsComponent, SystemState
-from src.security.enterprise_security import (JWTManager, SecurityValidator,
-                                              require_mfa, require_permission)
-from src.testing.edge_case_handler import (CircuitBreaker, EdgeCaseHandler,
-                                           RetryPolicy)
+from src.security.enterprise_security import (
+    JWTManager,
+    SecurityValidator,
+    require_mfa,
+    require_permission,
+)
+from src.testing.edge_case_handler import CircuitBreaker, EdgeCaseHandler, RetryPolicy
 
 # Configure logging and monitoring
 logging.basicConfig(level=logging.INFO)
