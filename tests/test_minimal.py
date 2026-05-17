@@ -19,6 +19,7 @@ def test_imports():
     try:
         import json
         import tempfile
+
         print("✅ Basic imports work")
         return True
     except ImportError as e:
@@ -29,13 +30,13 @@ def test_imports():
 def test_file_system():
     """Test file system operations"""
     try:
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             f.write("test")
             temp_path = f.name
-        
-        with open(temp_path, 'r') as f:
+
+        with open(temp_path, "r") as f:
             content = f.read()
-        
+
         os.unlink(temp_path)
         assert content == "test"
         print("✅ File operations work")
@@ -51,10 +52,10 @@ if __name__ == "__main__":
     print(f"Python executable: {sys.executable}")
     print(f"Current directory: {os.getcwd()}")
     print(f"Environment PATH: {os.environ.get('PATH', 'Not found')[:200]}...")
-    
+
     # Run tests
     test_python_basics()
     test_imports()
     test_file_system()
-    
+
     print("🎉 All minimal tests passed!")
