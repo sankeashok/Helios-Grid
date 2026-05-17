@@ -10,6 +10,7 @@ env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.9'
   DOCKER_IMAGE: sankeashok/helios-grid
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # 🧪 Code Quality & Security Checks
@@ -34,13 +35,13 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: 🎨 Code Formatting Check (Black)
-        run: black --check --diff .
+        run: black --check --diff . --exclude="helios-grid-env/"
 
       - name: 📏 Import Sorting Check (isort)
-        run: isort --check-only --diff .
+        run: isort --check-only --diff . --skip-glob="helios-grid-env/*"
 
       - name: 🔍 Linting (Flake8)
-        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=helios-grid-env
 
       - name: 🛡️ Security Scan (Bandit)
         run: bandit -r . -f json -o bandit-report.json || true
