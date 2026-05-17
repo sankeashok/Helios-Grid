@@ -10,7 +10,6 @@ env:
   NODE_VERSION: '18'
   PYTHON_VERSION: '3.9'
   DOCKER_IMAGE: sankeashok/helios-grid
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # 🧪 Code Quality & Security Checks
@@ -24,13 +23,14 @@ jobs:
           fetch-depth: 0
 
       - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: 📦 Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install flake8 black isort bandit safety
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: 🎨 Code Formatting Check (Black)
@@ -45,12 +45,16 @@ jobs:
       - name: 🛡️ Security Scan (Bandit)
         run: bandit -r . -f json -o bandit-report.json || true
 
+      - name: 🔒 Dependency Security Check
+        run: safety check --json --output safety-report.json || true
+
       - name: 📊 Upload Security Reports
         uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
             bandit-report.json
+            safety-report.json
 
   # 🧪 Python Tests
   python-tests:
@@ -65,7 +69,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🐍 Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -189,8 +193,6 @@ jobs:
         run: |
           echo "🚀 Deploying to staging environment..."
           echo "Image: ${{ env.DOCKER_IMAGE }}:staging"
-          # Add your staging deployment commands here
-          # e.g., kubectl, docker-compose, cloud provider CLI
 
   # 🏭 Deploy to Production
   deploy-production:
@@ -223,7 +225,6 @@ jobs:
         run: |
           echo "🏭 Deploying to production environment..."
           echo "Image: ${{ env.DOCKER_IMAGE }}:latest"
-          # Add your production deployment commands here
 
   # 📊 Performance & Load Testing
   performance-tests:
@@ -238,7 +239,6 @@ jobs:
       - name: 🚀 Run Load Tests
         run: |
           echo "🚀 Running performance tests..."
-          # Add load testing commands here (e.g., k6, artillery, locust)
 
   # 🔄 Auto-merge Feature Branches
   auto-merge:
