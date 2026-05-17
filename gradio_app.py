@@ -192,6 +192,7 @@ with gr.Blocks(
 ) as app:
 
     # Header
+    # fmt: off
     gr.HTML("""
     <div class="main-header">
         <h1 style="color: white; font-size: 3rem; margin-bottom: 1rem;">☀️ Helios-Grid</h1>
@@ -199,6 +200,7 @@ with gr.Blocks(
         <p style="color: white; opacity: 0.9;">Enterprise MLOps Pipeline for Energy Forecasting</p>
     </div>
     """)
+    # fmt: on
 
     with gr.Row():
         with gr.Column(scale=1):
@@ -277,6 +279,7 @@ with gr.Blocks(
     )
 
     # Footer
+    # fmt: off
     gr.HTML("""
     <div style="text-align: center; padding: 2rem; margin-top: 2rem; background: rgba(255, 255, 255, 0.1); border-radius: 15px;">
         <h3 style="color: white;">☀️ Helios-Grid Energy Predictor</h3>
@@ -284,6 +287,7 @@ with gr.Blocks(
         <p style="color: white; opacity: 0.8;"><strong>Deployment Options:</strong> Gradio Cloud • Streamlit • Docker • Local Python</p>
     </div>
     """)
+    # fmt: on
 
 # Launch the app
 if __name__ == "__main__":
