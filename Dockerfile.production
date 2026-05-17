@@ -30,10 +30,6 @@ COPY --chown=mlops:mlops local_test_clean.py .
 # Create necessary directories
 RUN mkdir -p logs models data && chown -R mlops:mlops logs models data
 
-# Copy models and data if they exist
-COPY --chown=mlops:mlops models/ ./models/ 2>/dev/null || echo "No models directory found"
-COPY --chown=mlops:mlops data/ ./data/ 2>/dev/null || echo "No data directory found"
-
 # Switch to non-root user
 USER mlops
 
