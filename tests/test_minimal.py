@@ -5,6 +5,7 @@ Tests only the most basic functionality to isolate issues
 
 import sys
 import os
+import tempfile
 
 
 def test_python_basics():
