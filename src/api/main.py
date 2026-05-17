@@ -6,7 +6,10 @@ Includes Azure integration, monitoring, and security features
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import joblib
 import mlflow
@@ -18,12 +21,21 @@ import uvicorn
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.monitor.opentelemetry import configure_azure_monitor
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Security
+from fastapi import BackgroundTasks
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from prometheus_client import Counter, Gauge, Histogram
-from pydantic import BaseModel, Field, validator
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
+from prometheus_client import Counter
+from prometheus_client import Gauge
+from prometheus_client import Histogram
+from pydantic import BaseModel
+from pydantic import Field
+from pydantic import validator
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

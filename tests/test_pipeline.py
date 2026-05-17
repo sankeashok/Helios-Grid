@@ -7,7 +7,9 @@ import json
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -17,10 +19,14 @@ from fastapi.testclient import TestClient
 sys.path.append("../src")
 
 from src.api.main import app
-from src.data.kaggle_ingestion import DatasetConfig, KaggleDataIngestion
-from src.features.feature_engineering import FeatureConfig, FeaturePipeline
-from src.monitoring.drift_detection import DriftDetector, ModelPerformanceMonitor
-from src.training.train_model import ModelConfig, ModelTrainer
+from src.data.kaggle_ingestion import DatasetConfig
+from src.data.kaggle_ingestion import KaggleDataIngestion
+from src.features.feature_engineering import FeatureConfig
+from src.features.feature_engineering import FeaturePipeline
+from src.monitoring.drift_detection import DriftDetector
+from src.monitoring.drift_detection import ModelPerformanceMonitor
+from src.training.train_model import ModelConfig
+from src.training.train_model import ModelTrainer
 
 
 class TestDataIngestion:

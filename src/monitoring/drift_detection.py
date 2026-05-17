@@ -7,8 +7,12 @@ import json
 import logging
 import os
 import warnings
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from datetime import datetime
+from datetime import timedelta
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Tuple
 
 import evidently
 import mlflow
@@ -16,11 +20,14 @@ import numpy as np
 import pandas as pd
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
-from evidently.metric_preset import DataDriftPreset, RegressionPreset
-from evidently.metrics import ColumnDriftMetric, DatasetDriftMetric
+from evidently.metric_preset import DataDriftPreset
+from evidently.metric_preset import RegressionPreset
+from evidently.metrics import ColumnDriftMetric
+from evidently.metrics import DatasetDriftMetric
 from evidently.report import Report
 from scipy import stats
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
 
 warnings.filterwarnings("ignore")
 

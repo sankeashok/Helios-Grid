@@ -19,16 +19,13 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
 # Import our modules
-from src.data.energy_ingestion import EnergyConsumptionIngestion, EnergyDatasetConfig
-from src.features.energy_feature_engineering import (
-    EnergyFeatureConfig,
-    EnergyFeaturePipeline,
-)
-from src.training.energy_model_training import (
-    EnergyEnsembleTrainer,
-    EnergyModelConfig,
-    EnergyModelTrainer,
-)
+from src.data.energy_ingestion import EnergyConsumptionIngestion
+from src.data.energy_ingestion import EnergyDatasetConfig
+from src.features.energy_feature_engineering import EnergyFeatureConfig
+from src.features.energy_feature_engineering import EnergyFeaturePipeline
+from src.training.energy_model_training import EnergyEnsembleTrainer
+from src.training.energy_model_training import EnergyModelConfig
+from src.training.energy_model_training import EnergyModelTrainer
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
