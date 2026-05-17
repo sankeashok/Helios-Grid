@@ -50,7 +50,7 @@ psutil==5.9.6
 
 # Security & Secrets
 python-dotenv==1.0.0
-cryptography==41.0.8
+cryptography==41.0.7
 
 # Utilities
 click==8.1.7
