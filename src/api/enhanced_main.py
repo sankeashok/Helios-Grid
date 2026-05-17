@@ -11,10 +11,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import joblib
 import mlflow
@@ -26,37 +23,32 @@ import uvicorn
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from azure.monitor.opentelemetry import configure_azure_monitor
-from fastapi import BackgroundTasks
-from fastapi import Depends
-from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi import Response
-from fastapi import Security
+from fastapi import (
+    BackgroundTasks,
+    Depends,
+    FastAPI,
+    HTTPException,
+    Request,
+    Response,
+    Security,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import HTMLResponse
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security import HTTPBearer
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
-from prometheus_client import Counter
-from prometheus_client import Gauge
-from prometheus_client import Histogram
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import validator
+from prometheus_client import Counter, Gauge, Histogram
+from pydantic import BaseModel, Field, validator
 
 sys.path.append(".")
-from src.core.enterprise_architecture import BaseMLOpsComponent
-from src.core.enterprise_architecture import SystemState
-from src.security.enterprise_security import JWTManager
-from src.security.enterprise_security import SecurityValidator
-from src.security.enterprise_security import require_mfa
-from src.security.enterprise_security import require_permission
-from src.testing.edge_case_handler import CircuitBreaker
-from src.testing.edge_case_handler import EdgeCaseHandler
-from src.testing.edge_case_handler import RetryPolicy
+from src.core.enterprise_architecture import BaseMLOpsComponent, SystemState
+from src.security.enterprise_security import (
+    JWTManager,
+    SecurityValidator,
+    require_mfa,
+    require_permission,
+)
+from src.testing.edge_case_handler import CircuitBreaker, EdgeCaseHandler, RetryPolicy
 
 # Configure logging and monitoring
 logging.basicConfig(level=logging.INFO)

@@ -5,20 +5,12 @@ Staff-Level Engineering Implementation with Council-Driven Design
 
 import asyncio
 import logging
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import Generic
-from typing import List
-from typing import Optional
-from typing import Protocol
-from typing import TypeVar
+from typing import Any, Dict, Generic, List, Optional, Protocol, TypeVar
 
 # Type definitions for enterprise-grade type safety
 T = TypeVar("T")

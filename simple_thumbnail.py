@@ -6,9 +6,7 @@ Creates optimized PNG under 300KB for GitHub social preview
 import io
 import os
 
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 
 def create_thumbnail():

@@ -7,10 +7,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
+from typing import Any, Dict, List, Tuple
 
 import joblib
 import lightgbm as lgb
@@ -22,18 +19,12 @@ import numpy as np
 import optuna
 import pandas as pd
 import xgboost as xgb
-from azureml.core import Experiment
-from azureml.core import Run
-from azureml.core import Workspace
+from azureml.core import Experiment, Run, Workspace
 from azureml.core.model import Model
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import ElasticNet
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import GridSearchCV, cross_val_score
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

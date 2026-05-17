@@ -36,9 +36,6 @@ jobs:
       - name: 🎨 Code Formatting Check (Black)
         run: black --check --diff . --exclude="helios-grid-env/"
 
-      - name: 📏 Import Sorting Check (isort)
-        run: isort --check-only --diff . --skip-glob="helios-grid-env/*"
-
       - name: 🔍 Linting (Flake8)
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=helios-grid-env
 

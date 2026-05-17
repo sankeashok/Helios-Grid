@@ -6,8 +6,7 @@ Automates the creation of Azure resources for MLOps pipeline
 import json
 import logging
 import os
-from typing import Any
-from typing import Dict
+from typing import Any, Dict
 
 import click
 from azure.identity import DefaultAzureCredential
