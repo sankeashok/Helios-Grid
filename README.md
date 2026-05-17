@@ -6,6 +6,8 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-green?logo=python)](https://python.org/)
 [![MLflow](https://img.shields.io/badge/MLflow-Tracking-orange?logo=mlflow)](https://mlflow.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-API-teal?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?logo=github-actions)](https://github.com/sankeashok/Helios-Grid/actions)
+[![Wiki](https://img.shields.io/badge/Wiki-Documentation-blue?logo=gitbook)](https://github.com/sankeashok/Helios-Grid/wiki)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Staff-Level Engineering Implementation** - Production-grade MLOps pipeline for energy consumption prediction with enterprise security, monitoring, and scalability.
@@ -25,6 +27,42 @@
 - **🔄 CI/CD Pipeline**: 6-stage automated pipeline with blue-green deployments
 - **📈 Real-time Monitoring**: Drift detection, performance tracking, and alerting
 - **🧪 Chaos Engineering**: Comprehensive edge case handling and resilience testing
+
+---
+
+## 📚 **Documentation**
+
+### **📖 Comprehensive Wiki**
+Explore our detailed documentation at **[Helios-Grid Wiki](https://github.com/sankeashok/Helios-Grid/wiki)**:
+
+- **[Installation Guide](https://github.com/sankeashok/Helios-Grid/wiki/Installation-Guide)** - Complete setup instructions
+- **[Dataset Documentation](https://github.com/sankeashok/Helios-Grid/wiki/Dataset-Documentation)** - Kaggle energy data details
+- **[API Documentation](https://github.com/sankeashok/Helios-Grid/wiki/API-Documentation)** - REST API reference
+- **[System Architecture](https://github.com/sankeashok/Helios-Grid/wiki/System-Architecture)** - Enterprise design overview
+- **[First Run Guide](https://github.com/sankeashok/Helios-Grid/wiki/First-Run)** - Quick start tutorial
+
+### **🚀 Live Demo**
+- **Interactive API**: [Swagger Documentation](http://localhost:8000/docs) (when running locally)
+- **Premium Dashboard**: [Glassmorphism UI](http://localhost:8000) (when running locally)
+- **Health Check**: [System Status](http://localhost:8000/health) (when running locally)
+
+---
+
+## 🏆 **Enterprise CI/CD Pipeline**
+
+### **✅ Production-Ready Pipeline Status**
+- **7-Layer Architecture**: Code Quality → Backend Tests → Frontend Tests → Containerization → Deployment → Release → Notifications
+- **12 Parallel Jobs**: Comprehensive testing across multiple environments
+- **Auto-Merge**: Feature branches automatically merge when all tests pass
+- **Security Scanning**: SAST/DAST integration with Bandit, Safety, and Trivy
+- **Performance Monitoring**: Real-time metrics and alerting
+
+### **🔄 Deployment Workflow**
+```
+Feature Branch → CI/CD Pipeline → Auto-Merge → Staging → Production
+      ↓              ↓              ↓          ↓         ↓
+   Push Code    All Tests Pass   Merge to Main  Deploy  Release
+```
 
 ---
 
