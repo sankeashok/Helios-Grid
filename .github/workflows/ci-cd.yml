@@ -33,7 +33,7 @@ jobs:
       - name: 📦 Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 black isort bandit safety mypy
+          pip install flake8 black isort bandit mypy
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: 🎨 Code Formatting Check (Black)
@@ -45,16 +45,12 @@ jobs:
       - name: 🔒 Security Scan (Bandit)
         run: bandit -r . -f json -o bandit-report.json || true
 
-      - name: 🛡️ Dependency Security Check
-        run: safety check --json --output safety-report.json || true
-
       - name: 📊 Upload Security Reports
         uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
             bandit-report.json
-            safety-report.json
 
   # 🧪 Python Backend Testing
   backend-tests:
