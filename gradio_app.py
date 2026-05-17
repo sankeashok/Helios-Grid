@@ -6,11 +6,12 @@ import plotly.graph_objects as go
 from datetime import datetime
 import json
 
+
 # Simple prediction function (fallback when API is not available)
 def simple_prediction(hour, temperature, day_of_week):
     """Local prediction when API is unavailable"""
     base_consumption = 100.0
-    
+
     # Hour factor
     if 8 <= hour <= 10 or 18 <= hour <= 20:  # Peak hours
         hour_factor = 1.5
@@ -18,7 +19,7 @@ def simple_prediction(hour, temperature, day_of_week):
         hour_factor = 0.7
     else:
         hour_factor = 1.0
-    
+
     # Temperature factor
     if temperature > 25:  # Hot weather (AC usage)
         temp_factor = 1.3
@@ -26,24 +27,27 @@ def simple_prediction(hour, temperature, day_of_week):
         temp_factor = 1.2
     else:
         temp_factor = 1.0
-    
+
     # Day factor
     if day_of_week in [6, 7]:  # Weekend
         day_factor = 0.9
     else:
         day_factor = 1.1
-    
+
     prediction = base_consumption * hour_factor * temp_factor * day_factor
     prediction += np.random.normal(0, 5)
     prediction = max(prediction, 10.0)
-    
+
     confidence = min(0.95, max(0.6, 1.0 - abs(prediction - 100) / 200))
-    
+
     return prediction, confidence, "local_model_v1.0"
 
-def predict_energy(hour, temperature, day_of_week, api_endpoint="http://localhost:8000"):
+
+def predict_energy(
+    hour, temperature, day_of_week, api_endpoint="http://localhost:8000"
+):
     """Main prediction function"""
-    
+
     # Try API first
     try:
         response = requests.post(
@@ -52,27 +56,29 @@ def predict_energy(hour, temperature, day_of_week, api_endpoint="http://localhos
                 "features": {
                     "hour": float(hour),
                     "temperature": float(temperature),
-                    "day_of_week": float(day_of_week)
+                    "day_of_week": float(day_of_week),
                 }
             },
-            timeout=5
+            timeout=5,
         )
-        
+
         if response.status_code == 200:
             result = response.json()
-            prediction = result.get('prediction', 0)
-            confidence = result.get('confidence', 0) * 100
-            model_version = result.get('model_version', 'api')
+            prediction = result.get("prediction", 0)
+            confidence = result.get("confidence", 0) * 100
+            model_version = result.get("model_version", "api")
             status = "🟢 API Connected"
         else:
             raise Exception("API Error")
-            
+
     except Exception as e:
         # Fallback to local prediction
-        prediction, conf, model_version = simple_prediction(hour, temperature, day_of_week)
+        prediction, conf, model_version = simple_prediction(
+            hour, temperature, day_of_week
+        )
         confidence = conf * 100
         status = "🟡 Local Mode (API Unavailable)"
-    
+
     # Format results
     result_text = f"""
     ## 🔮 Energy Prediction Results
@@ -87,8 +93,9 @@ def predict_energy(hour, temperature, day_of_week, api_endpoint="http://localhos
     - **Temperature:** {temperature}°C ({get_temp_category(temperature)})
     - **Day:** {get_day_name(day_of_week)} ({get_day_type(day_of_week)})
     """
-    
+
     return result_text
+
 
 def get_time_period(hour):
     """Get time period description"""
@@ -101,6 +108,7 @@ def get_time_period(hour):
     else:
         return "Night"
 
+
 def get_temp_category(temp):
     """Get temperature category"""
     if temp < 10:
@@ -110,45 +118,59 @@ def get_temp_category(temp):
     else:
         return "Moderate"
 
+
 def get_day_name(day_num):
     """Get day name from number"""
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     return days[day_num - 1]
+
 
 def get_day_type(day_num):
     """Get day type"""
     return "Weekend" if day_num in [6, 7] else "Weekday"
 
+
 def generate_forecast(temperature, day_of_week):
     """Generate 24-hour forecast"""
     hours = list(range(24))
     predictions = []
-    
+
     for hour in hours:
         pred, _, _ = simple_prediction(hour, temperature, day_of_week)
         predictions.append(pred)
-    
+
     # Create plotly figure
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=hours,
-        y=predictions,
-        mode='lines+markers',
-        name='Energy Consumption',
-        line=dict(color='#667eea', width=3),
-        marker=dict(size=6)
-    ))
-    
+    fig.add_trace(
+        go.Scatter(
+            x=hours,
+            y=predictions,
+            mode="lines+markers",
+            name="Energy Consumption",
+            line=dict(color="#667eea", width=3),
+            marker=dict(size=6),
+        )
+    )
+
     fig.update_layout(
         title="24-Hour Energy Consumption Forecast",
         xaxis_title="Hour of Day",
         yaxis_title="Energy Consumption (kWh)",
         template="plotly_white",
         height=400,
-        showlegend=False
+        showlegend=False,
     )
-    
+
     return fig
+
 
 # Create Gradio interface
 with gr.Blocks(
@@ -165,9 +187,9 @@ with gr.Blocks(
         border-radius: 15px;
         margin-bottom: 2rem;
     }
-    """
+    """,
 ) as app:
-    
+
     # Header
     gr.HTML("""
     <div class="main-header">
@@ -176,88 +198,83 @@ with gr.Blocks(
         <p style="color: white; opacity: 0.9;">Enterprise MLOps Pipeline for Energy Forecasting</p>
     </div>
     """)
-    
+
     with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("## 🎛️ Prediction Parameters")
-            
+
             hour = gr.Slider(
                 minimum=0,
                 maximum=23,
                 value=14,
                 step=1,
                 label="⏰ Hour of Day (0-23)",
-                info="Select the hour for prediction"
+                info="Select the hour for prediction",
             )
-            
+
             temperature = gr.Slider(
                 minimum=-20,
                 maximum=50,
                 value=22,
                 step=1,
                 label="🌡️ Temperature (°C)",
-                info="Current temperature in Celsius"
+                info="Current temperature in Celsius",
             )
-            
+
             day_of_week = gr.Dropdown(
                 choices=[
                     (1, "Monday"),
-                    (2, "Tuesday"), 
+                    (2, "Tuesday"),
                     (3, "Wednesday"),
                     (4, "Thursday"),
                     (5, "Friday"),
                     (6, "Saturday"),
-                    (7, "Sunday")
+                    (7, "Sunday"),
                 ],
                 value=3,
                 label="📅 Day of Week",
-                info="Select the day of the week"
+                info="Select the day of the week",
             )
-            
+
             api_endpoint = gr.Textbox(
                 value="http://localhost:8000",
                 label="🔗 API Endpoint",
-                info="Helios-Grid API URL (optional)"
+                info="Helios-Grid API URL (optional)",
             )
-            
+
             predict_btn = gr.Button(
-                "⚡ Predict Energy Consumption",
-                variant="primary",
-                size="lg"
+                "⚡ Predict Energy Consumption", variant="primary", size="lg"
             )
-        
+
         with gr.Column(scale=2):
             gr.Markdown("## 🔮 Prediction Results")
-            
+
             result_output = gr.Markdown(
                 value="Click 'Predict Energy Consumption' to get started!",
-                elem_classes=["prediction-output"]
+                elem_classes=["prediction-output"],
             )
-    
+
     with gr.Row():
         gr.Markdown("## 📈 24-Hour Energy Forecast")
-        
+
     with gr.Row():
         forecast_plot = gr.Plot(label="Energy Consumption Forecast")
-        
+
         generate_forecast_btn = gr.Button(
-            "📊 Generate 24-Hour Forecast",
-            variant="secondary"
+            "📊 Generate 24-Hour Forecast", variant="secondary"
         )
-    
+
     # Event handlers
     predict_btn.click(
         fn=predict_energy,
         inputs=[hour, temperature, day_of_week, api_endpoint],
-        outputs=result_output
+        outputs=result_output,
     )
-    
+
     generate_forecast_btn.click(
-        fn=generate_forecast,
-        inputs=[temperature, day_of_week],
-        outputs=forecast_plot
+        fn=generate_forecast, inputs=[temperature, day_of_week], outputs=forecast_plot
     )
-    
+
     # Footer
     gr.HTML("""
     <div style="text-align: center; padding: 2rem; margin-top: 2rem; background: rgba(255, 255, 255, 0.1); border-radius: 15px;">
@@ -269,9 +286,4 @@ with gr.Blocks(
 
 # Launch the app
 if __name__ == "__main__":
-    app.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=False,
-        show_error=True
-    )
+    app.launch(server_name="0.0.0.0", server_port=7860, share=False, show_error=True)

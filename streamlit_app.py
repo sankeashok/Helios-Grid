@@ -12,11 +12,12 @@ st.set_page_config(
     page_title="Helios-Grid Energy Predictor",
     page_icon="☀️",
     layout="wide",
-    initial_sidebar_state="auto"  # Auto-collapse on mobile
+    initial_sidebar_state="auto",  # Auto-collapse on mobile
 )
 
 # Mobile-friendly CSS with responsive design
-st.markdown("""
+st.markdown(
+    """
 <style>
     /* Mobile-first responsive design */
     @media (max-width: 768px) {
@@ -157,13 +158,20 @@ st.markdown("""
         }
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Mobile-responsive header
-st.markdown('<h1 class="main-header">☀️ Helios-Grid Energy Predictor</h1>', unsafe_allow_html=True)
+st.markdown(
+    '<h1 class="main-header">☀️ Helios-Grid Energy Predictor</h1>',
+    unsafe_allow_html=True,
+)
 
 # Check if mobile device (simplified detection)
-is_mobile = st.sidebar.checkbox("📱 Mobile Mode", help="Toggle for mobile-optimized layout")
+is_mobile = st.sidebar.checkbox(
+    "📱 Mobile Mode", help="Toggle for mobile-optimized layout"
+)
 
 if is_mobile:
     st.markdown("#### 📱 Mobile Energy Predictor")
@@ -175,27 +183,33 @@ else:
 if is_mobile:
     # Mobile layout - inputs in main area
     st.header("🔧 Prediction Parameters")
-    
+
     # Create mobile-friendly input columns
     mobile_col1, mobile_col2 = st.columns(2)
-    
+
     with mobile_col1:
         hour = st.slider("⏰ Hour (0-23)", 0, 23, 18, help="Peak: 17-20")
-        temperature = st.slider("🌡️ Temp (°C)", -10, 45, 25, help="Hot weather = more AC")
-    
+        temperature = st.slider(
+            "🌡️ Temp (°C)", -10, 45, 25, help="Hot weather = more AC"
+        )
+
     with mobile_col2:
         day_of_week = st.selectbox(
-            "📅 Day", 
+            "📅 Day",
             options=[1, 2, 3, 4, 5, 6, 7],
-            format_func=lambda x: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][x-1],
-            index=4
+            format_func=lambda x: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+                x - 1
+            ],
+            index=4,
         )
-        
+
         # Quick presets for mobile
-        preset = st.selectbox("⚡ Quick Preset", 
+        preset = st.selectbox(
+            "⚡ Quick Preset",
             ["Custom", "Morning Peak", "Evening Peak", "Night Low", "Weekend"],
-            help="Quick parameter combinations")
-    
+            help="Quick parameter combinations",
+        )
+
     # Apply presets
     if preset == "Morning Peak":
         hour, temperature, day_of_week = 8, 22, 2
@@ -205,7 +219,7 @@ if is_mobile:
         hour, temperature, day_of_week = 2, 18, 4
     elif preset == "Weekend":
         hour, temperature, day_of_week = 14, 25, 6
-    
+
     # Simplified advanced parameters for mobile
     with st.expander("🔬 More Options"):
         adv_col1, adv_col2 = st.columns(2)
@@ -214,22 +228,38 @@ if is_mobile:
             wind_speed = st.slider("💨 Wind", 0, 50, 10)
         with adv_col2:
             cloud_cover = st.slider("☁️ Clouds", 0, 100, 30)
-            
+
 else:
     # Desktop layout - sidebar inputs
     st.sidebar.header("🔧 Prediction Parameters")
-    
+
     # Input parameters
-    hour = st.sidebar.slider("Hour of Day (0-23)", 0, 23, 18, help="Peak hours are typically 17-20")
-    temperature = st.sidebar.slider("Temperature (°C)", -10, 45, 25, help="Higher temperatures increase cooling demand")
-    day_of_week = st.sidebar.selectbox(
-        "Day of Week", 
-        options=[1, 2, 3, 4, 5, 6, 7],
-        format_func=lambda x: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][x-1],
-        index=4,
-        help="Weekdays typically have different patterns than weekends"
+    hour = st.sidebar.slider(
+        "Hour of Day (0-23)", 0, 23, 18, help="Peak hours are typically 17-20"
     )
-    
+    temperature = st.sidebar.slider(
+        "Temperature (°C)",
+        -10,
+        45,
+        25,
+        help="Higher temperatures increase cooling demand",
+    )
+    day_of_week = st.sidebar.selectbox(
+        "Day of Week",
+        options=[1, 2, 3, 4, 5, 6, 7],
+        format_func=lambda x: [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ][x - 1],
+        index=4,
+        help="Weekdays typically have different patterns than weekends",
+    )
+
     # Advanced parameters (collapsible)
     with st.sidebar.expander("🔬 Advanced Parameters"):
         humidity = st.slider("Humidity (%)", 0, 100, 60)
@@ -247,46 +277,54 @@ else:
 
 with col1:
     st.header("📊 Energy Consumption Prediction")
-    
+
     # Prediction function (mock implementation for demo)
     def predict_energy_consumption(hour, temp, day, humidity=60, wind=10, cloud=30):
         """Mock prediction function - replace with actual model"""
         # Base consumption
         base = 100
-        
+
         # Hour factor (peak hours)
         hour_factor = 1.0
         if 17 <= hour <= 20:  # Peak hours
             hour_factor = 1.4
         elif 22 <= hour <= 6:  # Night hours
             hour_factor = 0.7
-        
+
         # Temperature factor
         temp_factor = 1.0
         if temp > 25:  # Hot weather increases AC usage
             temp_factor = 1.0 + (temp - 25) * 0.03
         elif temp < 10:  # Cold weather increases heating
             temp_factor = 1.0 + (10 - temp) * 0.02
-        
+
         # Day factor
         day_factor = 1.2 if day <= 5 else 0.8  # Weekday vs weekend
-        
+
         # Weather factors
         humidity_factor = 1.0 + (humidity - 50) * 0.001
         wind_factor = 1.0 - wind * 0.005
         cloud_factor = 1.0 - cloud * 0.002
-        
+
         # Calculate prediction
-        prediction = base * hour_factor * temp_factor * day_factor * humidity_factor * wind_factor * cloud_factor
-        
+        prediction = (
+            base
+            * hour_factor
+            * temp_factor
+            * day_factor
+            * humidity_factor
+            * wind_factor
+            * cloud_factor
+        )
+
         # Add some randomness for realism
         prediction += np.random.normal(0, 5)
-        
+
         # Confidence based on parameter certainty
         confidence = min(95, 85 + np.random.uniform(0, 10))
-        
+
         return round(prediction, 1), round(confidence, 1)
-    
+
     # Mobile-optimized predict button
     button_text = "⚡ Predict" if is_mobile else "⚡ Predict Energy Consumption"
     if st.button(button_text, type="primary", use_container_width=True):
@@ -294,31 +332,37 @@ with col1:
             prediction, confidence = predict_energy_consumption(
                 hour, temperature, day_of_week, humidity, wind_speed, cloud_cover
             )
-            
+
             # Display result
             # Mobile-optimized result display
             if is_mobile:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 <div class="prediction-result">
                     <h2>🔮 Result</h2>
                     <h1>{prediction} kWh</h1>
                     <p>✅ {confidence}% confident</p>
                     <p>⚡ {np.random.uniform(1.5, 3.2):.1f}ms</p>
                 </div>
-                """, unsafe_allow_html=True)
+                """,
+                    unsafe_allow_html=True,
+                )
             else:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 <div class="prediction-result">
                     <h2>🔮 Prediction Result</h2>
                     <h1>{prediction} kWh</h1>
                     <p>Confidence: {confidence}%</p>
                     <p>Processing Time: {np.random.uniform(1.5, 3.2):.1f}ms</p>
                 </div>
-                """, unsafe_allow_html=True)
-            
+                """,
+                    unsafe_allow_html=True,
+                )
+
             # Additional insights
             st.success("✅ Prediction completed successfully!")
-            
+
             # Mobile-responsive factors analysis
             if is_mobile:
                 st.subheader("📊 Key Factors")
@@ -327,16 +371,26 @@ with col1:
             else:
                 st.subheader("📈 Key Factors Analysis")
                 factors_col1, factors_col2, factors_col3 = st.columns(3)
-            
+
             with factors_col1:
-                st.metric("Time Impact", f"{hour}:00", "Peak" if 17 <= hour <= 20 else "Normal")
-            
+                st.metric(
+                    "Time Impact",
+                    f"{hour}:00",
+                    "Peak" if 17 <= hour <= 20 else "Normal",
+                )
+
             with factors_col2:
-                temp_delta = "High" if temperature > 25 else "Low" if temperature < 10 else "Normal"
+                temp_delta = (
+                    "High"
+                    if temperature > 25
+                    else "Low" if temperature < 10 else "Normal"
+                )
                 st.metric("Temperature Impact", f"{temperature}°C", temp_delta)
-            
+
             with factors_col3:
-                day_name = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][day_of_week-1]
+                day_name = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+                    day_of_week - 1
+                ]
                 day_type = "Weekday" if day_of_week <= 5 else "Weekend"
                 st.metric("Day Impact", day_name, day_type)
 
@@ -344,12 +398,12 @@ with col1:
 if not is_mobile:
     with col2:
         st.header("📊 System Status")
-        
+
         # System health metrics
         st.metric("🟢 System Health", "Operational", "✅ All systems go")
         st.metric("🤖 Model Status", "Ready", "v1.0.0")
         st.metric("⚡ Response Time", "2.1ms", "Fast")
-        
+
         # Quick stats
         st.subheader("📈 Quick Stats")
         st.info("🏠 Avg Household: 120 kWh/day")
@@ -371,76 +425,112 @@ else:
 st.header("📈 Energy Consumption Patterns")
 
 # Generate sample historical data
-dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now(), freq='H')
+dates = pd.date_range(
+    start=datetime.now() - timedelta(days=30), end=datetime.now(), freq="H"
+)
 sample_data = []
 
 for date in dates:
     hour = date.hour
-    temp = 20 + 10 * np.sin((date.dayofyear - 80) * 2 * np.pi / 365) + np.random.normal(0, 3)
+    temp = (
+        20
+        + 10 * np.sin((date.dayofyear - 80) * 2 * np.pi / 365)
+        + np.random.normal(0, 3)
+    )
     day_of_week = date.weekday() + 1
     consumption, _ = predict_energy_consumption(hour, temp, day_of_week)
-    
-    sample_data.append({
-        'datetime': date,
-        'hour': hour,
-        'temperature': temp,
-        'consumption': consumption,
-        'day_type': 'Weekday' if day_of_week <= 5 else 'Weekend'
-    })
+
+    sample_data.append(
+        {
+            "datetime": date,
+            "hour": hour,
+            "temperature": temp,
+            "consumption": consumption,
+            "day_type": "Weekday" if day_of_week <= 5 else "Weekend",
+        }
+    )
 
 df = pd.DataFrame(sample_data)
 
 # Mobile-responsive charts
 if is_mobile:
     # Mobile: stacked charts
-    fig_ts = px.line(df, x='datetime', y='consumption', 
-                     title='📈 Energy Over Time',
-                     labels={'consumption': 'Energy (kWh)', 'datetime': 'Time'})
+    fig_ts = px.line(
+        df,
+        x="datetime",
+        y="consumption",
+        title="📈 Energy Over Time",
+        labels={"consumption": "Energy (kWh)", "datetime": "Time"},
+    )
     fig_ts.update_layout(height=300, title_font_size=16)
     st.plotly_chart(fig_ts, use_container_width=True)
-    
+
     # Mobile chart tabs
     chart_tab = st.selectbox("📊 View Chart", ["Hourly Pattern", "Temperature Impact"])
-    
+
     if chart_tab == "Hourly Pattern":
-        hourly_avg = df.groupby('hour')['consumption'].mean().reset_index()
-        fig_hourly = px.bar(hourly_avg, x='hour', y='consumption',
-                            title='⏰ Hourly Pattern',
-                            labels={'consumption': 'Energy (kWh)', 'hour': 'Hour'})
+        hourly_avg = df.groupby("hour")["consumption"].mean().reset_index()
+        fig_hourly = px.bar(
+            hourly_avg,
+            x="hour",
+            y="consumption",
+            title="⏰ Hourly Pattern",
+            labels={"consumption": "Energy (kWh)", "hour": "Hour"},
+        )
         fig_hourly.update_layout(height=250, title_font_size=14)
         st.plotly_chart(fig_hourly, use_container_width=True)
     else:
-        fig_temp = px.scatter(df, x='temperature', y='consumption',
-                              title='🌡️ Temperature Impact',
-                              labels={'consumption': 'Energy (kWh)', 'temperature': 'Temp (°C)'})
+        fig_temp = px.scatter(
+            df,
+            x="temperature",
+            y="consumption",
+            title="🌡️ Temperature Impact",
+            labels={"consumption": "Energy (kWh)", "temperature": "Temp (°C)"},
+        )
         fig_temp.update_layout(height=250, title_font_size=14)
         st.plotly_chart(fig_temp, use_container_width=True)
 else:
     # Desktop: full charts
-    fig_ts = px.line(df, x='datetime', y='consumption', 
-                     title='Energy Consumption Over Time',
-                     labels={'consumption': 'Energy (kWh)', 'datetime': 'Date & Time'})
+    fig_ts = px.line(
+        df,
+        x="datetime",
+        y="consumption",
+        title="Energy Consumption Over Time",
+        labels={"consumption": "Energy (kWh)", "datetime": "Date & Time"},
+    )
     fig_ts.update_layout(height=400)
     st.plotly_chart(fig_ts, use_container_width=True)
-    
+
     # Daily pattern chart
     col1, col2 = st.columns(2)
 
 if not is_mobile:
     with col1:
-        hourly_avg = df.groupby('hour')['consumption'].mean().reset_index()
-        fig_hourly = px.bar(hourly_avg, x='hour', y='consumption',
-                            title='Average Consumption by Hour',
-                            labels={'consumption': 'Energy (kWh)', 'hour': 'Hour of Day'})
+        hourly_avg = df.groupby("hour")["consumption"].mean().reset_index()
+        fig_hourly = px.bar(
+            hourly_avg,
+            x="hour",
+            y="consumption",
+            title="Average Consumption by Hour",
+            labels={"consumption": "Energy (kWh)", "hour": "Hour of Day"},
+        )
         fig_hourly.update_layout(height=300)
         st.plotly_chart(fig_hourly, use_container_width=True)
-    
+
     with col2:
-        temp_consumption = df.groupby(pd.cut(df['temperature'], bins=10))['consumption'].mean().reset_index()
-        temp_consumption['temp_range'] = temp_consumption['temperature'].astype(str)
-        fig_temp = px.scatter(df, x='temperature', y='consumption',
-                              title='Consumption vs Temperature',
-                              labels={'consumption': 'Energy (kWh)', 'temperature': 'Temperature (°C)'})
+        temp_consumption = (
+            df.groupby(pd.cut(df["temperature"], bins=10))["consumption"]
+            .mean()
+            .reset_index()
+        )
+        temp_consumption["temp_range"] = temp_consumption["temperature"].astype(str)
+        fig_temp = px.scatter(
+            df,
+            x="temperature",
+            y="consumption",
+            title="Consumption vs Temperature",
+            labels={"consumption": "Energy (kWh)", "temperature": "Temperature (°C)"},
+        )
         fig_temp.update_layout(height=300)
         st.plotly_chart(fig_temp, use_container_width=True)
 
@@ -448,13 +538,14 @@ if not is_mobile:
 if is_mobile:
     with st.expander("🔌 API Info"):
         st.markdown("**Quick API Example:**")
-        st.code("POST /predict\n{hour: 18, temp: 30}", language='json')
+        st.code("POST /predict\n{hour: 18, temp: 30}", language="json")
         st.markdown("📚 [Full API Docs](http://localhost:8000/docs)")
 else:
     st.header("🔌 API Integration")
-    
+
     with st.expander("📚 API Documentation"):
-        st.code("""
+        st.code(
+            """
 # Python API Usage Example
 import requests
 
@@ -472,8 +563,10 @@ response = requests.post('http://localhost:8000/predict',
 result = response.json()
 print(f"Energy Consumption: {result['prediction']} kWh")
 print(f"Confidence: {result['confidence']}%")
-        """, language='python')
-        
+        """,
+            language="python",
+        )
+
         st.markdown("**Available Endpoints:**")
         st.markdown("- `POST /predict` - Single prediction")
         st.markdown("- `POST /batch_predict` - Batch predictions")
@@ -483,7 +576,8 @@ print(f"Confidence: {result['confidence']}%")
 # Mobile-responsive footer
 st.markdown("---")
 if is_mobile:
-    st.markdown("""
+    st.markdown(
+        """
     <div style='text-align: center; color: #666; font-size: 0.8rem;'>
         <p>🌟 Helios-Grid MLOps<br>
         <a href='https://github.com/sankeashok/Helios-Grid'>GitHub</a> | 
@@ -497,12 +591,17 @@ if is_mobile:
         <div class="mobile-nav-item">🔧<br>Settings</div>
         <div class="mobile-nav-item">📚<br>API</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 else:
-    st.markdown("""
+    st.markdown(
+        """
     <div style='text-align: center; color: #666;'>
         <p>🌟 Powered by Helios-Grid MLOps Pipeline | 
         <a href='https://github.com/sankeashok/Helios-Grid'>GitHub</a> | 
         <a href='https://hub.docker.com/r/sankeashok/helios-grid'>Docker Hub</a></p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )

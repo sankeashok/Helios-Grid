@@ -22,91 +22,99 @@ import uvicorn
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 # Simplified Pydantic Models
 class PredictionRequest(BaseModel):
     """Simplified request model for local testing"""
+
     features: Dict[str, float] = Field(..., description="Feature values for prediction")
-    
+
+
 class PredictionResponse(BaseModel):
     """Simplified response model for local testing"""
+
     prediction: float
     confidence: float
     model_version: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     processing_time_ms: float
 
+
 class HealthResponse(BaseModel):
     """Simplified health check response"""
+
     status: str
     timestamp: datetime
     version: str
     message: str
 
+
 class SimpleModelManager:
     """Simplified model manager for local testing"""
-    
+
     def __init__(self):
         self.model_version = "local_test_v1.0"
         self.is_healthy = True
-        
+
     def predict(self, features: Dict[str, float]) -> Dict[str, Any]:
         """Simple rule-based prediction for testing"""
         start_time = datetime.utcnow()
-        
+
         # Simple energy consumption prediction based on features
         # Assume features like hour, temperature, day_of_week, etc.
-        
+
         base_consumption = 100.0  # Base energy consumption
-        
+
         # Hour of day effect (peak hours consume more)
-        hour = features.get('hour', 12)
+        hour = features.get("hour", 12)
         if 8 <= hour <= 10 or 18 <= hour <= 20:  # Peak hours
             hour_factor = 1.5
         elif 22 <= hour <= 6:  # Night hours
             hour_factor = 0.7
         else:
             hour_factor = 1.0
-        
+
         # Temperature effect
-        temperature = features.get('temperature', 20)
+        temperature = features.get("temperature", 20)
         if temperature > 25:  # Hot weather (AC usage)
             temp_factor = 1.3
         elif temperature < 10:  # Cold weather (heating)
             temp_factor = 1.2
         else:
             temp_factor = 1.0
-        
+
         # Day of week effect
-        day_of_week = features.get('day_of_week', 1)
+        day_of_week = features.get("day_of_week", 1)
         if day_of_week in [6, 7]:  # Weekend
             day_factor = 0.9
         else:
             day_factor = 1.1
-        
+
         # Calculate prediction
         prediction = base_consumption * hour_factor * temp_factor * day_factor
-        
+
         # Add some randomness for realism
         prediction += np.random.normal(0, 5)
-        
+
         # Ensure positive prediction
         prediction = max(prediction, 10.0)
-        
+
         # Calculate confidence (higher for typical values)
         confidence = min(0.95, max(0.6, 1.0 - abs(prediction - 100) / 200))
-        
+
         processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
+
         return {
-            'prediction': round(prediction, 2),
-            'confidence': round(confidence, 3),
-            'model_version': self.model_version,
-            'processing_time_ms': round(processing_time, 2)
+            "prediction": round(prediction, 2),
+            "confidence": round(confidence, 3),
+            "model_version": self.model_version,
+            "processing_time_ms": round(processing_time, 2),
         }
-    
+
     def health_check(self) -> bool:
         """Simple health check"""
         return self.is_healthy
+
 
 # Initialize model manager
 model_manager = SimpleModelManager()
@@ -117,7 +125,7 @@ app = FastAPI(
     description="Local testing version of the Helios-Grid energy consumption MLOps pipeline",
     version="1.0.0-local",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Add CORS middleware for local development
@@ -135,6 +143,7 @@ try:
 except Exception as e:
     logger.warning(f"Could not mount static files: {e}")
 
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     """Add processing time header"""
@@ -143,6 +152,7 @@ async def add_process_time_header(request: Request, call_next):
     process_time = (datetime.utcnow() - start_time).total_seconds()
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard():
@@ -279,29 +289,32 @@ async def dashboard():
         """
         return HTMLResponse(content=html_content)
 
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Simple health check endpoint"""
     is_healthy = model_manager.health_check()
-    
+
     return HealthResponse(
         status="healthy" if is_healthy else "unhealthy",
         timestamp=datetime.utcnow(),
         version="1.0.0-local",
-        message="Helios-Grid local test environment is running"
+        message="Helios-Grid local test environment is running",
     )
+
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(request: PredictionRequest):
     """Simple prediction endpoint for local testing"""
-    
+
     try:
         result = model_manager.predict(request.features)
         return PredictionResponse(**result)
-        
+
     except Exception as e:
         logger.error(f"Prediction error: {e}")
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
 
 @app.get("/test")
 async def test_endpoint():
@@ -314,9 +327,10 @@ async def test_endpoint():
             "dashboard": "/",
             "health": "/health",
             "predict": "/predict",
-            "docs": "/docs"
-        }
+            "docs": "/docs",
+        },
     }
+
 
 if __name__ == "__main__":
     print("🚀 Starting Helios-Grid Local Test Server...")
@@ -324,11 +338,7 @@ if __name__ == "__main__":
     print("🔍 API Docs: http://localhost:8000/docs")
     print("❤️ Health Check: http://localhost:8000/health")
     print("\\n🔥 Press Ctrl+C to stop the server")
-    
+
     uvicorn.run(
-        "local_test:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=True,
-        log_level="info"
+        "local_test:app", host="127.0.0.1", port=8000, reload=True, log_level="info"
     )
