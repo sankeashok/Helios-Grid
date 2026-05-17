@@ -160,6 +160,7 @@ jobs:
           context: .
           file: ./Dockerfile.production
           push: false
+          load: true
           tags: ${{ env.DOCKER_IMAGE }}:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
