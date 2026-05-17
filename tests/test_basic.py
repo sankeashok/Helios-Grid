@@ -169,13 +169,14 @@ class TestMLBasics:
 
             # Test serialization using a regular file
             import tempfile
+
             temp_dir = tempfile.mkdtemp()
             model_path = os.path.join(temp_dir, "test_model.pkl")
-            
+
             try:
                 joblib.dump(model, model_path)
                 loaded_model = joblib.load(model_path)
-                
+
                 # Test that loaded model works
                 pred_original = model.predict([[4]])
                 pred_loaded = loaded_model.predict([[4]])
