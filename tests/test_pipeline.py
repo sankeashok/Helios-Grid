@@ -3,23 +3,24 @@ Comprehensive Test Suite for MLOps Pipeline
 Tests data ingestion, feature engineering, model training, and API endpoints
 """
 
-import pytest
-import pandas as pd
-import numpy as np
-from unittest.mock import Mock, patch, MagicMock
-import tempfile
-import os
 import json
-from fastapi.testclient import TestClient
+import os
 import sys
+import tempfile
+from unittest.mock import MagicMock, Mock, patch
+
+import numpy as np
+import pandas as pd
+import pytest
+from fastapi.testclient import TestClient
 
 sys.path.append("../src")
 
-from src.data.kaggle_ingestion import KaggleDataIngestion, DatasetConfig
-from src.features.feature_engineering import FeaturePipeline, FeatureConfig
-from src.training.train_model import ModelTrainer, ModelConfig
 from src.api.main import app
+from src.data.kaggle_ingestion import DatasetConfig, KaggleDataIngestion
+from src.features.feature_engineering import FeatureConfig, FeaturePipeline
 from src.monitoring.drift_detection import DriftDetector, ModelPerformanceMonitor
+from src.training.train_model import ModelConfig, ModelTrainer
 
 
 class TestDataIngestion:
@@ -488,11 +489,11 @@ class TestIntegration:
         # 5. Monitors for drift
 
         # For now, just test that all components can be imported
+        from src.api.main import app
         from src.data.kaggle_ingestion import KaggleDataIngestion
         from src.features.feature_engineering import FeaturePipeline
-        from src.training.train_model import ModelTrainer
-        from src.api.main import app
         from src.monitoring.drift_detection import DriftDetector
+        from src.training.train_model import ModelTrainer
 
         assert True  # All imports successful
 
