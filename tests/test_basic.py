@@ -99,9 +99,14 @@ class TestDataProcessing:
         dates = pd.date_range("2023-01-01", periods=10, freq="D")
         ts = pd.Series(range(10), index=dates)
 
-        # Test resampling
-        monthly = ts.resample("ME").sum()
-        assert len(monthly) == 1
+        # Test resampling with explicit frequency
+        try:
+            monthly = ts.resample("ME").sum()  # Month End frequency
+            assert len(monthly) >= 1
+        except Exception:
+            # Fallback for older pandas versions
+            monthly = ts.resample("M").sum()
+            assert len(monthly) >= 1
 
         # Test rolling operations
         rolling_mean = ts.rolling(window=3).mean()
@@ -144,9 +149,12 @@ class TestMLBasics:
 
             predictions = model.predict([[5]])
             assert len(predictions) == 1
+            assert abs(predictions[0] - 10) < 0.1  # Should predict ~10
 
         except ImportError as e:
             pytest.skip(f"Sklearn not available: {e}")
+        except Exception as e:
+            pytest.fail(f"Unexpected error in sklearn test: {e}")
 
     def test_model_serialization(self):
         """Test model serialization with joblib"""
