@@ -1,0 +1,33 @@
+{
+  "name": "helios-grid-react",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "cache-control": "s-maxage=31536000,immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://helios-grid-api.vercel.app"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://helios-grid-api.vercel.app"
+    }
+  }
+}
