@@ -92,6 +92,8 @@ temp/
 tmp/
 .tmp/
 *.tmp
+_temp/
+*_temp/
 
 # OS
 .DS_Store
