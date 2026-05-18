@@ -18,9 +18,10 @@ from azureml.exceptions import WebserviceException
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class HeliosGridAzureDeployment:
     """Azure ML deployment manager for Helios-Grid energy prediction model"""
-    
+
     def __init__(self, subscription_id: str, resource_group: str, workspace_name: str):
         self.subscription_id = subscription_id
         self.resource_group = resource_group
@@ -29,42 +30,44 @@ class HeliosGridAzureDeployment:
         self.model = None
         self.service = None
         self.version = "v1.1.0"  # Updated version for CI/CD test
-        
+
     def connect_workspace(self) -> bool:
         """Connect to Azure ML workspace"""
         try:
             self.workspace = Workspace(
                 subscription_id=self.subscription_id,
                 resource_group=self.resource_group,
-                workspace_name=self.workspace_name
+                workspace_name=self.workspace_name,
             )
             logger.info(f"Connected to workspace: {self.workspace.name}")
             return True
         except Exception as e:
             logger.error(f"Failed to connect to workspace: {e}")
             return False
-    
+
     def create_workspace_config(self):
         """Create workspace configuration file"""
         config = {
             "subscription_id": self.subscription_id,
             "resource_group": self.resource_group,
-            "workspace_name": self.workspace_name
+            "workspace_name": self.workspace_name,
         }
-        
+
         os.makedirs(".azureml", exist_ok=True)
         with open(".azureml/config.json", "w") as f:
             json.dump(config, f, indent=2)
-        
+
         logger.info("Workspace config created at .azureml/config.json")
-    
-    def register_model(self, model_path: str, model_name: str = "helios-grid-energy-model") -> bool:
+
+    def register_model(
+        self, model_path: str, model_name: str = "helios-grid-energy-model"
+    ) -> bool:
         """Register the trained model in Azure ML"""
         try:
             if not os.path.exists(model_path):
                 logger.error(f"Model file not found: {model_path}")
                 return False
-            
+
             self.model = Model.register(
                 workspace=self.workspace,
                 model_path=model_path,
@@ -74,17 +77,19 @@ class HeliosGridAzureDeployment:
                     "framework": "scikit-learn",
                     "type": "regression",
                     "domain": "energy_prediction",
-                    "version": "production_v1"
-                }
+                    "version": "production_v1",
+                },
             )
-            
-            logger.info(f"Model registered: {self.model.name} (version {self.model.version})")
+
+            logger.info(
+                f"Model registered: {self.model.name} (version {self.model.version})"
+            )
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to register model: {e}")
             return False
-    
+
     def create_scoring_script(self):
         """Create the scoring script for model inference"""
         scoring_script = '''
@@ -185,16 +190,18 @@ def run(raw_data):
         }
         return json.dumps(error_result)
 '''
-        
+
         with open("azure_deployment/score.py", "w") as f:
             f.write(scoring_script)
-        
+
         logger.info("Scoring script created at azure_deployment/score.py")
-    
-    def deploy_model(self, 
-                    cpu_cores: float = 1.0, 
-                    memory_gb: float = 2.0,
-                    service_name: str = "helios-grid-api") -> Optional[str]:
+
+    def deploy_model(
+        self,
+        cpu_cores: float = 1.0,
+        memory_gb: float = 2.0,
+        service_name: str = "helios-grid-api",
+    ) -> Optional[str]:
         """Deploy model as Azure Container Instance web service"""
         try:
             # Create environment
@@ -210,20 +217,20 @@ def run(raw_data):
                             "scikit-learn==1.3.0",
                             "pandas==2.0.3",
                             "numpy==1.24.3",
-                            "joblib==1.3.1"
+                            "joblib==1.3.1",
                         ]
-                    }
-                ]
+                    },
+                ],
             }
             env.python.conda_dependencies = conda_deps
-            
+
             # Create inference configuration
             inference_config = InferenceConfig(
                 entry_script="score.py",
                 source_directory="azure_deployment",
-                environment=env
+                environment=env,
             )
-            
+
             # Create deployment configuration
             deployment_config = AciWebservice.deploy_configuration(
                 cpu_cores=cpu_cores,
@@ -231,13 +238,13 @@ def run(raw_data):
                 tags={
                     "model": "helios-grid-energy",
                     "framework": "scikit-learn",
-                    "type": "energy_prediction"
+                    "type": "energy_prediction",
                 },
                 description="Helios-Grid Energy Consumption Prediction API",
                 enable_app_insights=True,
-                auth_enabled=False
+                auth_enabled=False,
             )
-            
+
             # Deploy the service
             logger.info(f"Deploying model as web service: {service_name}")
             self.service = Model.deploy(
@@ -246,12 +253,12 @@ def run(raw_data):
                 models=[self.model],
                 inference_config=inference_config,
                 deployment_config=deployment_config,
-                overwrite=True
+                overwrite=True,
             )
-            
+
             # Wait for deployment to complete
             self.service.wait_for_deployment(show_output=True)
-            
+
             if self.service.state == "Healthy":
                 scoring_uri = self.service.scoring_uri
                 logger.info(f"✅ Model deployed successfully!")
@@ -260,7 +267,7 @@ def run(raw_data):
             else:
                 logger.error(f"❌ Deployment failed. State: {self.service.state}")
                 return None
-                
+
         except Exception as e:
             logger.error(f"Deployment failed: {e}")
             return None
@@ -270,31 +277,37 @@ def create_simple_model():
     """Create a simple model for deployment testing"""
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.datasets import make_regression
-    
+
     # Create synthetic training data
     X, y = make_regression(n_samples=1000, n_features=8, noise=0.1, random_state=42)
-    
+
     # Train simple model
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X, y)
-    
+
     # Create model package
     model_package = {
         "model": model,
         "target_transformer": lambda x: x,
         "inverse_transformer": lambda x: x,
         "feature_names": [
-            "temperature", "humidity", "wind_speed", "solar_radiation",
-            "hour", "day_of_week", "month", "is_weekend"
+            "temperature",
+            "humidity",
+            "wind_speed",
+            "solar_radiation",
+            "hour",
+            "day_of_week",
+            "month",
+            "is_weekend",
         ],
-        "model_type": "random_forest"
+        "model_type": "random_forest",
     }
-    
+
     # Save model
     os.makedirs("models", exist_ok=True)
     model_path = "models/helios_grid_production_model.pkl"
     joblib.dump(model_package, model_path)
-    
+
     logger.info(f"Simple model created and saved to {model_path}")
     return model_path
 
