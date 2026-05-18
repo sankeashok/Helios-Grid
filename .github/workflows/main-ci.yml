@@ -289,22 +289,37 @@ jobs:
           git checkout main
           git pull origin main
           
-          # Merge feature branch with squash
-          git merge --squash origin/${{ github.ref_name }}
+          # Try merge with conflict resolution strategy
+          echo "Attempting merge with conflict resolution..."
           
-          # Commit the merge
-          git commit -m "🚀 Auto-deploy: Merge ${{ github.ref_name }} → main (All stages passed)
-          
-          ✅ Pipeline Status:
-          - 🐍 Backend Tests: PASSED
-          - ⚛️ Frontend Tests: PASSED  
-          - 🐳 Containerization: PASSED
-          - 🚀 Deployment Readiness: PASSED
-          - 🎆 Staging Deployment: PASSED
-          
-          Source: ${{ github.ref_name }}
-          Commit: ${{ github.sha }}
-          Pipeline: https://github.com/sankeashok/Helios-Grid/actions/runs/${{ github.run_id }}"
+          # Use theirs strategy for conflicts (feature branch wins)
+          git merge origin/${{ github.ref_name }} -X theirs --no-edit || {
+            echo "Merge conflicts detected. Resolving automatically..."
+            
+            # Reset and try squash merge with feature branch content
+            git merge --abort || true
+            git reset --hard HEAD
+            
+            # Create a new commit with feature branch content
+            git checkout origin/${{ github.ref_name }} -- .
+            
+            # Commit the changes
+            git add .
+            git commit -m "🚀 Auto-deploy: Merge ${{ github.ref_name }} → main (All stages passed)
+            
+            ✅ Pipeline Status:
+            - 🐍 Backend Tests: PASSED
+            - ⚛️ Frontend Tests: PASSED  
+            - 🐳 Containerization: PASSED
+            - 🚀 Deployment Readiness: PASSED
+            - 🎆 Staging Deployment: PASSED
+            
+            Source: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Pipeline: https://github.com/sankeashok/Helios-Grid/actions/runs/${{ github.run_id }}
+            
+            Note: Conflicts resolved automatically using feature branch content"
+          }
           
           # Push to main
           git push origin main
