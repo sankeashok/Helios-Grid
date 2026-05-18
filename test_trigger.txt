@@ -1,3 +1,0 @@
-Test file to trigger CI/CD pipeline and identify failure point
-Created: 2026-05-18
-Purpose: Debug CI/CD code quality issues
