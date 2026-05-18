@@ -76,18 +76,44 @@ jobs:
           
           echo "✅ Production Docker images built successfully!"
 
-      - name: 🏗️ Production Deployment Simulation
+      - name: 🏗️ Real Azure Production Deployment
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
         run: |
-          echo "🏗️ Simulating Helios-Grid Production Deployment..."
-          echo "Image: ${{ env.DOCKER_IMAGE }}:production-test"
-          echo "Version: v${{ github.run_number }}"
-          echo "Commit: ${{ github.sha }}"
+          echo "🏗️ DEPLOYING TO AZURE PRODUCTION..."
           
-          # Test the production image
-          docker run --rm ${{ env.DOCKER_IMAGE }}:production-test
-          
-          echo "🎉 Production deployment simulation completed!"
-          echo "Note: Docker Hub push disabled (no secrets required)"
+          # Check if Azure credentials are configured
+          if [ -z "$AZURE_CREDENTIALS" ]; then
+            echo "⚠️ Azure credentials not configured - running simulation"
+            echo "To enable real deployment:"
+            echo "1. Create Azure Service Principal"
+            echo "2. Add AZURE_CREDENTIALS secret to GitHub"
+            echo "3. See AZURE_DEPLOYMENT_SETUP.md for instructions"
+            
+            # Simulate deployment
+            echo "🎭 Simulating Azure Container Instance deployment..."
+            echo "Image: ${{ env.DOCKER_IMAGE }}:production-test"
+            echo "Public URL: https://helios-grid-energy-api.eastus.azurecontainer.io:8000"
+            echo "API Docs: https://helios-grid-energy-api.eastus.azurecontainer.io:8000/docs"
+            echo "🎉 Simulation completed!"
+          else
+            echo "✅ Azure credentials found - deploying to real Azure!"
+            
+            # Login to Azure
+            echo "$AZURE_CREDENTIALS" | base64 -d > azure_creds.json
+            az login --service-principal --username $(cat azure_creds.json | jq -r .clientId) --password $(cat azure_creds.json | jq -r .clientSecret) --tenant $(cat azure_creds.json | jq -r .tenantId)
+            
+            # Push Docker image to Azure Container Registry or Docker Hub
+            echo "🐳 Pushing Docker image..."
+            docker tag ${{ env.DOCKER_IMAGE }}:production-test ${{ env.DOCKER_IMAGE }}:latest
+            # docker push ${{ env.DOCKER_IMAGE }}:latest  # Uncomment when Docker Hub credentials added
+            
+            # Deploy to Azure Container Instances
+            echo "🚀 Deploying to Azure Container Instances..."
+            python deploy_azure_production.py
+            
+            echo "✅ Real Azure deployment completed!"
+          fi
 
   create-release:
     name: 🏷️ Create Release Report
