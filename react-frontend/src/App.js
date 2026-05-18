@@ -54,13 +54,25 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('/api/health');
+        // Try production server first
+        const response = await fetch('http://localhost:3002/health');
         if (response.ok) {
           const data = await response.json();
-          setSystemHealth(data);
+          setSystemHealth({
+            status: data.model_loaded ? 'healthy' : 'unhealthy',
+            version: data.model_version || '1.0.0',
+            responseTime: '< 200ms',
+            mlflow_tracking: data.mlflow_tracking
+          });
         }
       } catch (error) {
-        console.log('Health check failed - using mock data');
+        // Fallback to mock data if server not available
+        console.log('Production server not available - using mock data');
+        setSystemHealth({
+          status: 'offline',
+          version: '1.0.0',
+          responseTime: 'N/A'
+        });
       }
     };
     
