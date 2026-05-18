@@ -356,8 +356,8 @@ class HeliosGridMLflowTrainer:
         # Create model package
         model_package = {
             "model": best_result["model"],
-            "target_transformer": lambda x: x,
-            "inverse_transformer": lambda x: x,
+            "target_transformer": None,  # Remove lambda functions
+            "inverse_transformer": None,  # Remove lambda functions
             "feature_names": list(feature_names),
             "model_type": best_result["model_info"]["model_type"],
             "metrics": best_result["metrics"],
