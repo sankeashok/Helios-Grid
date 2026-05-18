@@ -273,52 +273,54 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔄 Create Pull Request to Main
-        id: create-pr
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "🚀 Auto-deploy: ${{ github.ref_name }} → main (All stages passed)"
-          title: "🚀 Auto-deploy: ${{ github.ref_name }} → main (All stages passed)"
-          body: |
-            ## 🎉 Automated Deployment to Main
-            
-            **All CI/CD stages have passed successfully!**
-            
-            ### ✅ Pipeline Status
-            - 🐍 Backend Tests: ✅ PASSED
-            - ⚛️ Frontend Tests: ✅ PASSED
-            - 🐳 Containerization: ✅ PASSED
-            - 🚀 Deployment Readiness: ✅ PASSED
-            - 🎆 Staging Deployment: ✅ PASSED
-            
-            ### 📊 Details
-            - **Source Branch**: `${{ github.ref_name }}`
-            - **Commit**: `${{ github.sha }}`
-            - **Pipeline**: [View Run](https://github.com/sankeashok/Helios-Grid/actions/runs/${{ github.run_id }})
-            
-            **Ready for manual merge to production.**
-          labels: |
-            auto-deploy
-            staging-passed
-            ready-for-production
-          branch: ${{ github.ref_name }}
-          base: main
-          delete-branch: false
-
-      - name: 📋 PR Creation Status
+      - name: 🔄 Setup Git Configuration
         run: |
-          echo "📋 PULL REQUEST STATUS"
-          echo "====================="
-          if [ "${{ steps.create-pr.outputs.pull-request-number }}" != "" ]; then
-            echo "✅ Pull Request Created Successfully"
-            echo "📄 PR Number: ${{ steps.create-pr.outputs.pull-request-number }}"
-            echo "🔗 PR URL: ${{ steps.create-pr.outputs.pull-request-url }}"
-            echo "📋 Status: Ready for manual review and merge"
-          else
-            echo "ℹ️ No PR created (may already exist or no changes)"
-          fi
-          echo "🎯 Next: Manual merge or enable auto-merge in repository settings"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 🔄 Auto-merge to Main Branch
+        run: |
+          echo "🔄 Starting auto-merge process..."
+          
+          # Fetch latest main
+          git fetch origin main
+          
+          # Switch to main and merge feature branch
+          git checkout main
+          git pull origin main
+          
+          # Merge feature branch with squash
+          git merge --squash origin/${{ github.ref_name }}
+          
+          # Commit the merge
+          git commit -m "🚀 Auto-deploy: Merge ${{ github.ref_name }} → main (All stages passed)
+          
+          ✅ Pipeline Status:
+          - 🐍 Backend Tests: PASSED
+          - ⚛️ Frontend Tests: PASSED  
+          - 🐳 Containerization: PASSED
+          - 🚀 Deployment Readiness: PASSED
+          - 🎆 Staging Deployment: PASSED
+          
+          Source: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Pipeline: https://github.com/sankeashok/Helios-Grid/actions/runs/${{ github.run_id }}"
+          
+          # Push to main
+          git push origin main
+          
+          echo "✅ Auto-merge completed successfully!"
+          echo "🚀 Production deployment will now trigger from main branch"
+
+      - name: 📊 Auto-merge Status
+        run: |
+          echo "📊 AUTO-MERGE STATUS"
+          echo "==================="
+          echo "✅ Feature branch merged to main"
+          echo "🎯 Source: ${{ github.ref_name }}"
+          echo "🎯 Target: main"
+          echo "🚀 Production deployment: Will trigger automatically"
+          echo "🔗 Monitor: https://github.com/sankeashok/Helios-Grid/actions"
 
   deploy-production:
     name: 🏗️ Deploy to Production
