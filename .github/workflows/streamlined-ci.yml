@@ -2,7 +2,7 @@ name: 🚀 Helios-Grid Streamlined CI/CD
 
 on:
   push:
-    branches: [ main, develop, 'feature/*' ]
+    branches: [ 'feature/*' ]
   pull_request:
     branches: [ main ]
 
