@@ -1,33 +1,17 @@
 {
   "name": "helios-grid-react",
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "headers": {
-        "cache-control": "s-maxage=31536000,immutable"
-      }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
+  "buildCommand": "cd react-frontend && CI=false npm run build",
+  "outputDirectory": "react-frontend/build",
+  "installCommand": "cd react-frontend && npm install --legacy-peer-deps",
   "env": {
-    "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space"
+    "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
+    "CI": "false"
   },
   "build": {
     "env": {
-      "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space"
+      "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
+      "CI": "false"
     }
   }
 }
