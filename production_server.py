@@ -1383,6 +1383,9 @@ async def get_admin_portal():
             }
         });
     </script>
+    <footer style="text-align: center; padding: 30px 20px; color: var(--text-muted); font-size: 14px; border-top: 1px solid var(--border-color); background: rgba(12, 13, 20, 0.4); backdrop-filter: blur(10px); margin-top: 50px; display: flex; justify-content: center; align-items: center; gap: 6px; z-index: 10;">
+        Developed by <a href="https://www.linkedin.com/in/ashok-sanke/" target="_blank" style="color: #00f2fe; text-decoration: none; font-weight: 600; transition: all 0.2s ease;" onmouseover="this.style.color='#bd00ff'; this.style.textShadow='0 0 10px rgba(189,0,255,0.4)';" onmouseout="this.style.color='#00f2fe'; this.style.textShadow='none';">Sanke Ashok</a>
+    </footer>
 </body>
 </html>"""
     return HTMLResponse(content=html_content)
