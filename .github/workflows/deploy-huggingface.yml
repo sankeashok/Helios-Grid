@@ -1,0 +1,38 @@
+name: 🤗 Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy-to-hf:
+    name: 🚀 Deploy to Hugging Face
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🤗 Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          
+          # Clone HF space
+          git clone https://huggingface.co/spaces/sankeashook/Helios-GridEnergy-Prediction hf-space
+          cd hf-space
+          
+          # Copy files from GitHub repo
+          cp -r ../README.md .
+          cp -r ../Dockerfile .
+          cp -r ../requirements.txt .
+          cp -r ../src .
+          
+          # Commit and push to HF
+          git add .
+          git commit -m "🚀 Auto-deploy from GitHub: ${{ github.sha }}" || exit 0
+          git push https://sankeashook:$HF_TOKEN@huggingface.co/spaces/sankeashook/Helios-GridEnergy-Prediction main
