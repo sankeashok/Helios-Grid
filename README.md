@@ -11,6 +11,8 @@ app_port: 8000
 
 # ☀️ Helios-Grid: Enterprise Energy Consumption MLOps Pipeline
 
+![Helios-Grid Social Preview](react-frontend/public/helios-grid-social.png)
+
 🚀 **Live Demo**: Production-grade MLOps pipeline for energy consumption prediction
 
 ## 🎯 Features
