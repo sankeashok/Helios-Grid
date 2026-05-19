@@ -6,7 +6,7 @@
   "outputDirectory": "react-frontend/build",
   "installCommand": "cd react-frontend && npm install --legacy-peer-deps",
   "env": {
-    "REACT_APP_API_URL": "https://helios-grid.up.railway.app",
+    "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
     "CI": "false",
     "DISABLE_ESLINT_PLUGIN": "true"
   }
