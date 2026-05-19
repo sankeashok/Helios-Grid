@@ -1,0 +1,13 @@
+{
+  "name": "helios-grid-energy-platform",
+  "version": 2,
+  "framework": "create-react-app",
+  "buildCommand": "cd react-frontend && DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
+  "outputDirectory": "react-frontend/build",
+  "installCommand": "cd react-frontend && npm install --legacy-peer-deps",
+  "env": {
+    "REACT_APP_API_URL": "https://helios-grid.up.railway.app",
+    "CI": "false",
+    "DISABLE_ESLINT_PLUGIN": "true"
+  }
+}
