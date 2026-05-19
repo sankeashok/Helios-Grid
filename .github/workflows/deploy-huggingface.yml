@@ -30,7 +30,7 @@ jobs:
           cp -r ../README.md .
           cp -r ../Dockerfile .
           cp -r ../requirements.txt .
-          cp -r ../src .
+          cp -r ../app.py .
           
           # Commit and push to HF
           git add .
