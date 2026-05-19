@@ -1,0 +1,17 @@
+name: 🧪 Simple Test Workflow
+
+on:
+  push:
+    branches: [ 'feature/*' ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Simple Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Step
+        run: |
+          echo "🎉 GitHub Actions is working!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
