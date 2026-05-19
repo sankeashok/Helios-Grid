@@ -20,15 +20,17 @@ from pydantic import BaseModel, Field
 import mlflow
 import mlflow.sklearn
 from contextlib import asynccontextmanager
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from src.training.automated_retrain import run_automated_retraining
 
 # Import DagsHub integration
 try:
-    from dagshub_integration import HeliosGridDagsHubIntegration
+    from src.core.dagshub_integration import HeliosGridDagsHubIntegration
 
     DAGSHUB_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     DAGSHUB_AVAILABLE = False
-    print("⚠️ DagsHub integration not available. Install dagshub: pip install dagshub")
+    print(f"⚠️ DagsHub integration not available: {e}")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -132,6 +134,49 @@ start_time = time.time()
 prediction_count = 0
 API_VERSION = "v1.1.0"  # Updated for CI/CD pipeline test
 
+# Prometheus Observability Metrics
+from prometheus_client import REGISTRY
+for metric_name in ["helios_grid_predictions_total", "helios_grid_prediction_latency_milliseconds", "helios_grid_model_accuracy_r2", "helios_grid_model_version", "helios_grid_feature_drift_p_value", "helios_grid_drift_detected", "helios_grid_predicted_energy_consumption_mw"]:
+    if metric_name in REGISTRY._names_to_collectors:
+        try:
+            REGISTRY.unregister(REGISTRY._names_to_collectors[metric_name])
+        except KeyError:
+            pass
+
+PREDICTION_COUNTER = Counter("helios_grid_predictions_total", "Total predictions made", ["status", "endpoint"])
+PREDICTION_LATENCY = Histogram("helios_grid_prediction_latency_milliseconds", "Time spent making predictions")
+ACTIVE_MODEL_R2 = Gauge("helios_grid_model_accuracy_r2", "R2 accuracy score of active model")
+ACTIVE_MODEL_VERSION = Gauge("helios_grid_model_version", "Active model version sequence")
+DRIFT_P_VALUE = Gauge("helios_grid_feature_drift_p_value", "Statistical drift p-value", ["feature"])
+DRIFT_DETECTED = Gauge("helios_grid_drift_detected", "Drift status (1 if detected, 0 if stable)")
+ENERGY_PREDICTED_GAUGE = Gauge("helios_grid_predicted_energy_consumption_mw", "Predicted energy consumption value")
+
+def log_serving_data(input_dict: dict):
+    """Log incoming serving feature payloads to serving_logs.csv (sliding window)"""
+    try:
+        os.makedirs("data", exist_ok=True)
+        serving_path = "data/serving_logs.csv"
+        
+        # Load existing or create new
+        if os.path.exists(serving_path):
+            try:
+                df = pd.read_csv(serving_path)
+            except:
+                df = pd.DataFrame(columns=["temperature", "humidity", "wind_speed", "solar_radiation", "hour", "day_of_week", "month", "is_weekend"])
+        else:
+            df = pd.DataFrame(columns=["temperature", "humidity", "wind_speed", "solar_radiation", "hour", "day_of_week", "month", "is_weekend"])
+            
+        new_row = pd.DataFrame([input_dict])
+        df = pd.concat([df, new_row], ignore_index=True)
+        
+        # Keep only the last 1000 logs (sliding window to prevent infinite disk space growth)
+        if len(df) > 1000:
+            df = df.iloc[-1000:]
+            
+        df.to_csv(serving_path, index=False)
+    except Exception as e:
+        logger.warning(f"Failed to log serving data: {e}")
+
 
 def setup_mlflow():
     """Setup MLflow tracking with DagsHub integration"""
@@ -170,6 +215,23 @@ def load_model():
             "metrics": model_package.get("metrics", {}),
             "loaded_at": datetime.now().isoformat(),
         }
+
+        # Set Prometheus metrics for active model
+        metrics_dict = model_package.get("metrics", {})
+        ACTIVE_MODEL_R2.set(float(metrics_dict.get("r2", 0.85)))
+        
+        # Parse numerical version for Prometheus metric
+        version_str = model_store["metadata"]["version"]
+        if "demo_" in version_str:
+            ACTIVE_MODEL_VERSION.set(1.0)
+        elif "retrained_" in version_str:
+            try:
+                parts = version_str.split("_")
+                ACTIVE_MODEL_VERSION.set(float(parts[1] + "." + parts[2]))
+            except:
+                ACTIVE_MODEL_VERSION.set(2.0)
+        else:
+            ACTIVE_MODEL_VERSION.set(1.0)
 
         logger.info(
             f"✅ Model loaded: {model_store['metadata']['type']} v{model_store['metadata']['version']}"
@@ -618,7 +680,13 @@ async def predict_energy(
         processing_time = (time.time() - start_time_pred) * 1000
         prediction_count += 1
 
-        # Log to MLflow in background
+        # Log to Prometheus Metrics
+        PREDICTION_COUNTER.labels(status="success", endpoint="predict").inc()
+        PREDICTION_LATENCY.observe(processing_time)
+        ENERGY_PREDICTED_GAUGE.set(prediction)
+
+        # Log serving logs & MLflow in background
+        background_tasks.add_task(log_serving_data, input_dict)
         background_tasks.add_task(
             log_prediction_to_mlflow, input_dict, prediction, processing_time
         )
@@ -631,6 +699,7 @@ async def predict_energy(
         )
 
     except Exception as e:
+        PREDICTION_COUNTER.labels(status="error", endpoint="predict").inc()
         logger.error(f"Prediction error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -775,26 +844,553 @@ async def get_dagshub_status():
         }
 
 
+class RetrainRequest(BaseModel):
+    """Admin retraining request parameters"""
+    force: bool = Field(False, description="Force retraining even if drift not detected")
+    simulated_drift: bool = Field(False, description="Simulate input drift for demonstration")
+
+@app.post("/admin/retrain")
+async def admin_retrain(request: RetrainRequest, background_tasks: BackgroundTasks):
+    """Admin trigger for statistical drift analysis and zero-downtime model retraining"""
+    
+    # Run retraining logic
+    logger.info("🛠️ Administrative trigger received for model retraining...")
+    
+    try:
+        # Run retraining synchronously to get immediate output
+        retrain_results = run_automated_retraining(
+            force=request.force, 
+            simulated_drift=request.simulated_drift
+        )
+        
+        # If new champion model is promoted, execute a dynamic zero-downtime hot-reload!
+        if retrain_results.get("promoted", False):
+            logger.info("🔥 Champion model promoted! Dynamic zero-downtime hot-reloading model...")
+            load_model()
+            retrain_results["message"] = "Retraining completed successfully. Champion model HOT-RELOADED into serving memory."
+            DRIFT_DETECTED.set(1.0 if retrain_results.get("drift_detected", False) else 0.0)
+        else:
+            DRIFT_DETECTED.set(0.0)
+
+        # Log feature p-values to Prometheus Gauges
+        for feature, f_res in retrain_results.get("drift_results", {}).items():
+            DRIFT_P_VALUE.labels(feature=feature).set(f_res.get("p_value", 1.0))
+
+        return JSONResponse(content=retrain_results)
+        
+    except Exception as e:
+        logger.error(f"❌ Automated retraining pipeline failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Pipeline failed: {str(e)}")
+
+@app.get("/admin", response_class=HTMLResponse)
+async def get_admin_portal():
+    """Serves the premium, interactive glassmorphism MLOps Control Center Admin Portal"""
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helios-Grid // MLOps Admin Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0c0d14;
+            --surface-color: rgba(20, 22, 37, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: linear-gradient(135deg, #00f2fe, #4facfe);
+            --neon-purple: #bd00ff;
+            --cyber-green: #00ff87;
+            --hazard-red: #ff0055;
+            --text-main: #f3f4f6;
+            --text-muted: #8e9bb0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 10% 20%, rgba(90, 120, 250, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(189, 0, 255, 0.05) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 24px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(12, 13, 20, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00f2fe, #bd00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .system-badge {
+            background: rgba(0, 255, 135, 0.1);
+            color: var(--cyber-green);
+            border: 1px solid rgba(0, 255, 135, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-container {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            border-color: rgba(0, 242, 254, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .portal-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary-glow);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .portal-item:hover::before { opacity: 1; }
+
+        .portal-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 242, 254, 0.2);
+            transform: scale(1.02);
+        }
+
+        .portal-name { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .portal-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+        .portal-port { font-family: 'Fira Code', monospace; font-size: 12px; color: #00f2fe; background: rgba(0, 242, 254, 0.08); padding: 2px 6px; border-radius: 4px; width: fit-content; }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .status-widget {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .widget-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .widget-value { font-weight: 800; font-size: 20px; color: var(--text-main); }
+        .widget-sub { font-size: 11px; color: var(--text-muted); }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 14px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .form-row:hover { background: rgba(255, 255, 255, 0.04); }
+
+        .checkbox-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-container input { display: none; }
+        .checkbox-custom {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .checkbox-container input:checked + .checkbox-custom { background: var(--cyber-green); }
+        .checkbox-container input:checked + .checkbox-custom::after { transform: translateX(20px); }
+
+        .btn {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            border: none;
+            border-radius: 12px;
+            color: #0b0c10;
+            padding: 16px 24px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .console-container {
+            background: #06070a;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: var(--cyber-green);
+            min-height: 250px;
+            max-height: 350px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            white-space: pre-wrap;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .console-line { line-height: 1.5; }
+        .console-system { color: var(--text-muted); }
+        .console-info { color: #00f2fe; }
+        .console-warn { color: #facc15; }
+        .console-error { color: var(--hazard-red); }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(11, 12, 16, 0.2);
+            border-top: 3px solid #0b0c10;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            ☀️ HELIOS-GRID MLOPS CONTROL CENTER
+        </div>
+        <div class="system-badge">
+            <span class="pulse" style="width: 8px; height: 8px; background: var(--cyber-green); border-radius: 50%; display: inline-block; box-shadow: 0 0 8px var(--cyber-green);"></span>
+            PRODUCTION ENGINE LIVE
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- LEFT: Operations Dashboard -->
+        <div class="card">
+            <div class="card-title">🔌 Active Portals & Observability</div>
+            <div class="portal-grid">
+                <a href="http://localhost:3000" target="_blank" class="portal-item">
+                    <div class="portal-name">📊 Grafana Dashboard</div>
+                    <div class="portal-desc">Real-time prediction rates, feature statistics, system latencies, and drift alerts.</div>
+                    <div class="portal-port">Port 3000</div>
+                </a>
+                <a href="http://localhost:5000" target="_blank" class="portal-item">
+                    <div class="portal-name">🔬 MLflow Tracking Workspace</div>
+                    <div class="portal-desc">View parameter configurations, metrics validation charts, and registered champion models.</div>
+                    <div class="portal-port">Port 5000</div>
+                </a>
+                <a href="http://localhost:9090" target="_blank" class="portal-item">
+                    <div class="portal-name">📡 Prometheus Telemetry Server</div>
+                    <div class="portal-desc">Scrapes raw endpoint statistics, request rates, and custom client metric logs.</div>
+                    <div class="portal-port">Port 9090</div>
+                </a>
+                <a href="/metrics" target="_blank" class="portal-item">
+                    <div class="portal-name">📃 Live Raw Scraped Metrics</div>
+                    <div class="portal-desc">Raw payload format containing standard prometheus client metrics.</div>
+                    <div class="portal-port">Port 3002 /metrics</div>
+                </a>
+            </div>
+
+            <div class="card-title">🤖 Active Production Model Metadata</div>
+            <div class="status-grid">
+                <div class="status-widget">
+                    <div class="widget-label">Champion Version</div>
+                    <div id="model-version" class="widget-value">---</div>
+                    <div id="model-loaded" class="widget-sub">Loaded: ---</div>
+                </div>
+                <div class="status-widget">
+                    <div class="widget-label">R² Validation Score</div>
+                    <div id="model-r2" class="widget-value">---</div>
+                    <div class="widget-sub">Random Forest Estimator</div>
+                </div>
+                <div class="status-widget">
+                    <div class="widget-label">Total Serving Queries</div>
+                    <div id="serving-queries" class="widget-value">---</div>
+                    <div class="widget-sub">Count since startup</div>
+                </div>
+                <div class="status-widget">
+                    <div class="widget-label">Engine Uptime</div>
+                    <div id="uptime" class="widget-value">---</div>
+                    <div class="widget-sub">System Online Time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Interactive Retraining Loop Control -->
+        <div class="card">
+            <div class="card-title">🔄 Retraining Pipeline Console</div>
+            
+            <label class="form-row">
+                <div>
+                    <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Force Pipeline Run</div>
+                    <div style="font-size:12px; color:var(--text-muted);">Execute retraining even if features are statistically stable</div>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="force-checkbox">
+                    <span class="checkbox-custom"></span>
+                </div>
+            </label>
+
+            <label class="form-row">
+                <div>
+                    <div style="font-weight:600; font-size:14px; margin-bottom:4px;">Simulate Climate Data Drift</div>
+                    <div style="font-size:12px; color:var(--text-muted);">Deliberately skew temperature and radiation to trigger alert</div>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="drift-checkbox">
+                    <span class="checkbox-custom"></span>
+                </div>
+            </label>
+
+            <button id="retrain-btn" class="btn">
+                <span class="spinner" id="btn-spinner"></span>
+                🚀 Execute Automated Retraining
+            </button>
+
+            <div class="console-container" id="console">
+                <div class="console-line console-system">[SYSTEM] Console active. Ready for retraining instructions...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch active model parameters and stats
+        async function fetchSystemStats() {
+            try {
+                const response = await fetch('/model/info');
+                if (!response.ok) throw new Error('API down');
+                const data = await response.json();
+                
+                document.getElementById('model-version').innerText = data.model_metadata.version;
+                // Parse loaded time
+                const loadedAt = new Date(data.model_metadata.loaded_at).toLocaleTimeString();
+                document.getElementById('model-loaded').innerText = `Loaded: ${loadedAt}`;
+                
+                const r2Val = parseFloat(data.model_metadata.metrics.r2 || 0.85);
+                document.getElementById('model-r2').innerText = r2Val.toFixed(4);
+                
+                document.getElementById('serving-queries').innerText = data.api_stats.total_predictions;
+                
+                // Uptime format
+                const uptimeSec = parseFloat(data.api_stats.uptime_seconds);
+                const hrs = Math.floor(uptimeSec / 3600);
+                const mins = Math.floor((uptimeSec % 3600) / 60);
+                const secs = Math.floor(uptimeSec % 60);
+                document.getElementById('uptime').innerText = `${hrs}h ${mins}m ${secs}s`;
+                
+            } catch (err) {
+                console.warn('System status check warning:', err);
+            }
+        }
+
+        // Trigger stats loop
+        setInterval(fetchSystemStats, 2000);
+        fetchSystemStats();
+
+        // Console logger
+        const consoleEl = document.getElementById('console');
+        function log(message, type = 'system') {
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            line.innerText = `[${time}] ${message}`;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // Trigger retraining request
+        document.getElementById('retrain-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('retrain-btn');
+            const spinner = document.getElementById('btn-spinner');
+            const force = document.getElementById('force-checkbox').checked;
+            const simulateDrift = document.getElementById('drift-checkbox').checked;
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            
+            log(`Triggering automated MLOps retraining request... (force=${force}, simulated_drift=${simulateDrift})`, 'info');
+            log(`Invoking Kolmogorov-Smirnov statistical calculations...`, 'info');
+
+            try {
+                const response = await fetch('/admin/retrain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ force: force, simulated_drift: simulateDrift })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success' || data.status === 'skipped') {
+                    if (data.drift_detected) {
+                        log(`🚨 STATISTICAL DATA DRIFT DETECTED IN ROLLING SERVING LOGS!`, 'error');
+                        // Show drift parameters
+                        for (const [feat, res] of Object.entries(data.drift_results)) {
+                            if (res.drift_detected) {
+                                log(`   ➔ Feature [${feat}]: Drift detected (p-value = ${res.p_value.toFixed(6)})`, 'error');
+                            } else {
+                                log(`   ➔ Feature [${feat}]: Stable (p-value = ${res.p_value.toFixed(4)})`, 'system');
+                            }
+                        }
+                    } else {
+                        log(`✅ Kolmogorov-Smirnov test complete. Serving feature distributions stable.`, 'system');
+                    }
+
+                    if (data.promoted) {
+                        log(`🔥 Champion model promoted!`, 'info');
+                        log(`   ➔ R² Accuracy: ${data.candidate_metrics.r2.toFixed(4)}`, 'info');
+                        log(`   ➔ RMSE: ${data.candidate_metrics.rmse.toFixed(2)}`, 'info');
+                        log(`💥 dynamic in-memory Zero-Downtime model hot-reload complete!`, 'info');
+                    } else {
+                        log(`😴 Skipping model promotion. Candidate model rejected (validation performance is inferior).`, 'warn');
+                    }
+                    
+                    log(`Pipeline run completed successfully in ${data.execution_time_seconds ? data.execution_time_seconds.toFixed(2) : 2.5}s.`, 'system');
+                } else {
+                    log(`❌ Pipeline execution failed: ${data.message}`, 'error');
+                }
+
+            } catch (err) {
+                log(`❌ Administrative API request failed: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                fetchSystemStats();
+            }
+        });
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content)
+
 @app.get("/metrics")
 async def get_metrics():
-    """Prometheus-style metrics endpoint"""
-    uptime = time.time() - start_time
-
-    metrics = f"""
-# HELP helios_grid_predictions_total Total number of predictions made
-# TYPE helios_grid_predictions_total counter
-helios_grid_predictions_total {prediction_count}
-
-# HELP helios_grid_uptime_seconds Server uptime in seconds
-# TYPE helios_grid_uptime_seconds gauge
-helios_grid_uptime_seconds {uptime}
-
-# HELP helios_grid_model_loaded Model loading status
-# TYPE helios_grid_model_loaded gauge
-helios_grid_model_loaded {1 if model_store.get("model") else 0}
-"""
-
-    return Response(content=metrics, media_type="text/plain")
+    """Prometheus metrics endpoint utilizing prometheus-client registry"""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":

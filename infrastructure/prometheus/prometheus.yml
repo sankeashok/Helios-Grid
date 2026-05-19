@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "helios-grid-api"
+    static_configs:
+      # host.docker.internal maps to localhost on the host machine
+      - targets: ["host.docker.internal:3002"]
