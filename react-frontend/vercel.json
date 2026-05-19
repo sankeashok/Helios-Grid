@@ -1,9 +1,12 @@
 {
-  "buildCommand": "cd react-frontend && npm install --legacy-peer-deps && DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
-  "outputDirectory": "react-frontend/build",
-  "installCommand": "cd react-frontend && npm install --legacy-peer-deps",
+  "name": "helios-grid-react",
+  "version": 2,
+  "framework": "create-react-app",
+  "buildCommand": "DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
+  "outputDirectory": "build",
+  "installCommand": "npm install --legacy-peer-deps",
   "env": {
-    "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
+    "REACT_APP_API_URL": "https://helios-grid.up.railway.app",
     "CI": "false",
     "DISABLE_ESLINT_PLUGIN": "true"
   }
