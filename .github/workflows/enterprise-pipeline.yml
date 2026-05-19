@@ -266,8 +266,11 @@ jobs:
   deploy-production:
     name: 🏗️ Production Deployment
     runs-on: ubuntu-latest
-    needs: [deployment-readiness]
-    if: github.ref == 'refs/heads/main'
+    needs: [deployment-readiness, auto-merge-to-main]
+    if: |
+      always() && 
+      needs.deployment-readiness.result == 'success' && 
+      (needs.auto-merge-to-main.result == 'success' || needs.auto-merge-to-main.result == 'skipped')
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
@@ -304,15 +307,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 🚀 Deploy to Vercel
+      - name: 📦 Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: 🚀 Deploy to Vercel (Production)
         working-directory: ./react-frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          echo "🚀 Deploying React Frontend to Vercel..."
-          npm install --global vercel@latest || echo "Vercel CLI install failed"
-          npm install --legacy-peer-deps || echo "npm install failed"
-          DISABLE_ESLINT_PLUGIN=true CI=false npm run build || echo "Build failed"
+          echo "🚀 Pulling Vercel Environment Information..."
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          echo "🚀 Building React Frontend..."
+          vercel build --prod --token=$VERCEL_TOKEN
+          echo "🚀 Deploying Prebuilt Artifacts to Vercel..."
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
           echo "✅ Vercel deployment completed"
 
       # Production Docker Build
@@ -332,7 +342,7 @@ jobs:
     name: 🏷️ Create Release & Notifications
     runs-on: ubuntu-latest
     needs: [deploy-production]
-    if: github.ref == 'refs/heads/main' && needs.deploy-production.result == 'success'
+    if: always() && needs.deploy-production.result == 'success'
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
