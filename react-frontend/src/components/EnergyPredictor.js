@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { 
   Zap, 
-  Clock, 
   Thermometer, 
   Calendar,
   TrendingUp,
@@ -11,14 +10,12 @@ import {
   CheckCircle,
   Sparkles,
   Sun,
-  Moon,
-  Wind,
-  Cloud
+  Moon
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Slider } from './ui/slider';
-import { cn, hapticFeedback, slideUpVariants, scaleInVariants, staggerContainer } from '../lib/utils';
+import { cn, hapticFeedback, slideUpVariants, staggerContainer } from '../lib/utils';
 
 const EnergyPredictor = ({ isMobile }) => {
   const [formData, setFormData] = useState({
@@ -33,7 +30,7 @@ const EnergyPredictor = ({ isMobile }) => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [theme, setTheme] = useState('dark-premium');
+  const [theme] = useState('dark-premium');
 
   // Quick presets for mobile
   const presets = {

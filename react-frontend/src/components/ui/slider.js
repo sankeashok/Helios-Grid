@@ -14,12 +14,6 @@ const Slider = React.forwardRef(({
 }, ref) => {
   const [value, setValue] = React.useState(props.value || props.defaultValue || [0]);
   
-  const variants = {
-    default: "",
-    neon: "slider-neon",
-    glow: "slider-glow",
-  };
-
   const handleValueChange = (newValue) => {
     setValue(newValue);
     if (haptic) hapticFeedback('light');

@@ -4,14 +4,10 @@ import { Toaster, toast } from 'react-hot-toast';
 import { 
   Sun, 
   Zap, 
-  TrendingUp, 
   Activity, 
   Smartphone, 
   Monitor,
   BarChart3,
-  Settings,
-  Home,
-  BookOpen,
   Sparkles,
   Moon
 } from 'lucide-react';
