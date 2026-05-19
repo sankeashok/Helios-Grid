@@ -1,0 +1,15 @@
+# Railway Deployment Configuration
+# This file tells Railway how to deploy your FastAPI production server
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python cloud_production_server.py"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[env]
+PORT = "$PORT"
+PYTHONPATH = "."
