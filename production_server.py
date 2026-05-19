@@ -256,78 +256,323 @@ def log_prediction_to_mlflow(
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint with API documentation"""
+    """Root endpoint with React-style prediction UI"""
     html_content = """
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
-        <title>☀️ Helios-Grid Energy Prediction API</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>☀️ Helios-Grid Energy Prediction</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .container { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
-            .header { text-align: center; margin-bottom: 30px; }
-            .endpoint { background: rgba(255,255,255,0.2); padding: 20px; margin: 15px 0; border-radius: 10px; }
-            .method { background: #28a745; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
-            .url { font-family: monospace; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 3px; }
-            a { color: #ffd700; text-decoration: none; }
-            a:hover { text-decoration: underline; }
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .glass-card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .neon-glow {
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+                border: 1px solid rgba(0, 255, 136, 0.5);
+            }
+            .pulse {
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: .5; }
+            }
         </style>
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>☀️ Helios-Grid Energy Prediction API</h1>
-                <p>Production-ready energy consumption prediction service</p>
-                <p><strong>🌐 Public Access Available</strong> | <strong>📊 MLflow Tracking Enabled</strong></p>
+    <body class="gradient-bg min-h-screen text-white">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="text-6xl animate-spin-slow">☀️</div>
+                </div>
+                <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                    Helios-Grid
+                </h1>
+                <p class="text-2xl opacity-90 mb-2">Energy Consumption MLOps Platform</p>
+                <p class="text-lg opacity-70 mb-4">Production-grade machine learning for sustainable energy management</p>
+                
+                <!-- Status Indicators -->
+                <div class="flex justify-center space-x-6 mb-6">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full pulse"></div>
+                        <span class="text-sm">API Live</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-blue-400 rounded-full pulse"></div>
+                        <span class="text-sm">Model Ready</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-purple-400 rounded-full pulse"></div>
+                        <span class="text-sm">MLOps Active</span>
+                    </div>
+                </div>
             </div>
-            
-            <div class="endpoint">
-                <h3><span class="method">GET</span> Health Check</h3>
-                <p class="url">/health</p>
-                <p>Check API health and model status</p>
+
+            <!-- Main Prediction Card -->
+            <div class="max-w-4xl mx-auto glass-card rounded-3xl p-8 mb-8">
+                <h2 class="text-3xl font-bold mb-8 text-center">⚡ AI Energy Predictor</h2>
+                
+                <!-- Input Form -->
+                <form id="predictionForm" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Temperature -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">🌡️ Temperature</label>
+                            <input type="range" id="temperature" min="-10" max="45" value="25" 
+                                   class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm">
+                                <span>-10°C</span>
+                                <span id="tempValue" class="font-bold text-xl text-yellow-400">25°C</span>
+                                <span>45°C</span>
+                            </div>
+                        </div>
+
+                        <!-- Humidity -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">💧 Humidity</label>
+                            <input type="range" id="humidity" min="0" max="100" value="60" 
+                                   class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm">
+                                <span>0%</span>
+                                <span id="humidityValue" class="font-bold text-xl text-blue-400">60%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+
+                        <!-- Wind Speed -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">💨 Wind Speed</label>
+                            <input type="range" id="windSpeed" min="0" max="50" value="10" 
+                                   class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm">
+                                <span>0 m/s</span>
+                                <span id="windValue" class="font-bold text-xl text-green-400">10 m/s</span>
+                                <span>50 m/s</span>
+                            </div>
+                        </div>
+
+                        <!-- Solar Radiation -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">☀️ Solar Radiation</label>
+                            <input type="range" id="solarRadiation" min="0" max="1500" value="750" 
+                                   class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm">
+                                <span>0 W/m²</span>
+                                <span id="solarValue" class="font-bold text-xl text-orange-400">750 W/m²</span>
+                                <span>1500 W/m²</span>
+                            </div>
+                        </div>
+
+                        <!-- Hour -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">🕐 Hour of Day</label>
+                            <input type="range" id="hour" min="0" max="23" value="14" 
+                                   class="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                            <div class="flex justify-between text-sm">
+                                <span>0:00</span>
+                                <span id="hourValue" class="font-bold text-xl text-purple-400">14:00</span>
+                                <span>23:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Month -->
+                        <div class="space-y-4">
+                            <label class="block text-lg font-medium">📅 Month</label>
+                            <select id="month" class="w-full p-3 rounded-lg bg-white/20 border border-white/30 text-white">
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7" selected>July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Day of Week -->
+                    <div class="space-y-4">
+                        <label class="block text-lg font-medium text-center">📅 Day of Week</label>
+                        <div class="grid grid-cols-7 gap-3">
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="0">
+                                <div class="text-2xl mb-1">🌅</div>
+                                <div class="text-sm">Mon</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105 neon-glow" data-day="1">
+                                <div class="text-2xl mb-1">💼</div>
+                                <div class="text-sm">Tue</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="2">
+                                <div class="text-2xl mb-1">⚡</div>
+                                <div class="text-sm">Wed</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="3">
+                                <div class="text-2xl mb-1">🚀</div>
+                                <div class="text-sm">Thu</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="4">
+                                <div class="text-2xl mb-1">🎉</div>
+                                <div class="text-sm">Fri</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="5">
+                                <div class="text-2xl mb-1">🏖️</div>
+                                <div class="text-sm">Sat</div>
+                            </button>
+                            <button type="button" class="day-btn p-4 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300 transform hover:scale-105" data-day="6">
+                                <div class="text-2xl mb-1">😴</div>
+                                <div class="text-sm">Sun</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Predict Button -->
+                    <div class="text-center">
+                        <button type="submit" id="predictBtn" 
+                                class="bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 hover:from-blue-600 hover:via-purple-700 hover:to-pink-600 
+                                       text-white font-bold py-6 px-12 rounded-2xl text-xl transition-all duration-300 transform hover:scale-105 shadow-2xl">
+                            <span id="btnText">🔮 Predict Energy Consumption</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-            
-            <div class="endpoint">
-                <h3><span class="method">POST</span> Single Prediction</h3>
-                <p class="url">/predict</p>
-                <p>Predict energy consumption for single input</p>
+
+            <!-- Results -->
+            <div id="results" class="hidden max-w-4xl mx-auto">
+                <div class="glass-card neon-glow rounded-3xl p-8 text-center">
+                    <h3 class="text-3xl font-bold mb-6">🎉 AI Prediction Result</h3>
+                    <div id="predictionValue" class="text-6xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        0 MW
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-lg">
+                        <div class="bg-white/10 rounded-2xl p-4">
+                            <div class="text-green-400 font-bold text-2xl" id="modelVersion">v1.0</div>
+                            <div class="opacity-80">Model Version</div>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-4">
+                            <div class="text-blue-400 font-bold text-2xl" id="responseTime">0ms</div>
+                            <div class="opacity-80">Response Time</div>
+                        </div>
+                        <div class="bg-white/10 rounded-2xl p-4">
+                            <div class="text-purple-400 font-bold text-2xl" id="timestamp">Now</div>
+                            <div class="opacity-80">Timestamp</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="endpoint">
-                <h3><span class="method">POST</span> Batch Prediction</h3>
-                <p class="url">/predict/batch</p>
-                <p>Predict energy consumption for multiple inputs</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3><span class="method">GET</span> Model Info</h3>
-                <p class="url">/model/info</p>
-                <p>Get detailed model information and metrics</p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>📚 Interactive Documentation</h3>
-                <p><a href="/docs">Swagger UI</a> | <a href="/redoc">ReDoc</a></p>
-            </div>
-            
-            <div class="endpoint">
-                <h3>🧪 Example Usage</h3>
-                <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; overflow-x: auto;">
-curl -X POST "http://localhost:3002/predict" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "temperature": 25.5,
-    "humidity": 60.0,
-    "wind_speed": 8.2,
-    "solar_radiation": 750.0,
-    "hour": 14,
-    "day_of_week": 2,
-    "month": 7,
-    "is_weekend": 0
-  }'
-                </pre>
+
+            <!-- Footer -->
+            <div class="text-center mt-12 opacity-70">
+                <p class="text-lg mb-2">Powered by Helios-Grid Enterprise MLOps Pipeline</p>
+                <div class="flex justify-center space-x-6 text-sm">
+                    <a href="/docs" class="hover:underline hover:text-yellow-400 transition-colors">📚 API Documentation</a>
+                    <a href="/health" class="hover:underline hover:text-green-400 transition-colors">🔍 Health Check</a>
+                    <a href="/model/info" class="hover:underline hover:text-blue-400 transition-colors">📊 Model Info</a>
+                </div>
             </div>
         </div>
+
+        <script>
+            let selectedDay = 1; // Tuesday by default
+
+            // Update slider values
+            document.getElementById('temperature').addEventListener('input', function() {
+                document.getElementById('tempValue').textContent = this.value + '°C';
+            });
+
+            document.getElementById('humidity').addEventListener('input', function() {
+                document.getElementById('humidityValue').textContent = this.value + '%';
+            });
+
+            document.getElementById('windSpeed').addEventListener('input', function() {
+                document.getElementById('windValue').textContent = this.value + ' m/s';
+            });
+
+            document.getElementById('solarRadiation').addEventListener('input', function() {
+                document.getElementById('solarValue').textContent = this.value + ' W/m²';
+            });
+
+            document.getElementById('hour').addEventListener('input', function() {
+                document.getElementById('hourValue').textContent = this.value + ':00';
+            });
+
+            // Day selection
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('neon-glow'));
+                    this.classList.add('neon-glow');
+                    selectedDay = parseInt(this.dataset.day);
+                });
+            });
+
+            // Form submission
+            document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const btn = document.getElementById('predictBtn');
+                const btnText = document.getElementById('btnText');
+                const results = document.getElementById('results');
+                
+                // Show loading
+                btn.disabled = true;
+                btnText.textContent = '⏳ AI is analyzing energy patterns...';
+                btn.classList.add('animate-pulse');
+                
+                try {
+                    const temperature = parseFloat(document.getElementById('temperature').value);
+                    const humidity = parseFloat(document.getElementById('humidity').value);
+                    const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+                    const solarRadiation = parseFloat(document.getElementById('solarRadiation').value);
+                    const hour = parseInt(document.getElementById('hour').value);
+                    const month = parseInt(document.getElementById('month').value);
+                    const isWeekend = selectedDay >= 5 ? 1 : 0;
+
+                    // Call localhost:3002 API
+                    const response = await axios.post('http://localhost:3002/predict', {
+                        temperature: temperature,
+                        humidity: humidity,
+                        wind_speed: windSpeed,
+                        solar_radiation: solarRadiation,
+                        hour: hour,
+                        day_of_week: selectedDay,
+                        month: month,
+                        is_weekend: isWeekend
+                    });
+
+                    // Show results with animation
+                    const data = response.data;
+                    document.getElementById('predictionValue').textContent = data.prediction.toFixed(1) + ' MW';
+                    document.getElementById('modelVersion').textContent = data.model_version || 'v1.0';
+                    document.getElementById('responseTime').textContent = data.processing_time_ms.toFixed(1) + 'ms';
+                    document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleTimeString();
+                    
+                    results.classList.remove('hidden');
+                    results.scrollIntoView({ behavior: 'smooth' });
+                    
+                } catch (error) {
+                    alert('❌ Prediction failed. Make sure the server is running on localhost:3002');
+                    console.error('Error:', error);
+                } finally {
+                    btn.disabled = false;
+                    btnText.textContent = '🔮 Predict Energy Consumption';
+                    btn.classList.remove('animate-pulse');
+                }
+            });
+        </script>
     </body>
     </html>
     """

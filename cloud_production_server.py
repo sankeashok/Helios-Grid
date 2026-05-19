@@ -44,6 +44,9 @@ class PredictionResponse(BaseModel):
     model_version: str
     timestamp: str
     processing_time_ms: float
+    
+    class Config:
+        protected_namespaces = ()
 
 class HealthResponse(BaseModel):
     status: str
@@ -51,6 +54,9 @@ class HealthResponse(BaseModel):
     model_version: str
     uptime_seconds: float
     predictions_made: int
+    
+    class Config:
+        protected_namespaces = ()
 
 def create_production_model():
     """Create and train a production-ready model"""
