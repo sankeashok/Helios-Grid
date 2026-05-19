@@ -1,17 +1,10 @@
 {
-  "name": "helios-grid-react",
-  "version": 2,
-  "buildCommand": "cd react-frontend && CI=false npm run build",
+  "buildCommand": "cd react-frontend && npm install --legacy-peer-deps && DISABLE_ESLINT_PLUGIN=true CI=false npm run build",
   "outputDirectory": "react-frontend/build",
   "installCommand": "cd react-frontend && npm install --legacy-peer-deps",
   "env": {
     "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
-    "CI": "false"
-  },
-  "build": {
-    "env": {
-      "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space",
-      "CI": "false"
-    }
+    "CI": "false",
+    "DISABLE_ESLINT_PLUGIN": "true"
   }
 }
