@@ -1,60 +1,24 @@
-# Core ML & Data Science
-pandas==2.1.4
-numpy==1.23.5
-scikit-learn==1.3.2
-xgboost==2.0.3
-lightgbm==4.1.0
-optuna==3.4.0
-
-# Azure ML & Cloud
-azureml-core==1.54.0
-azureml-mlflow==1.54.0
-azureml-dataset-runtime==1.54.0
-azure-identity==1.15.0
-azure-keyvault-secrets==4.7.0
-azure-storage-blob==12.13.0
-azure-monitor-opentelemetry==1.2.0
-
-# API & Web Framework
+# Core API Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-pydantic==1.10.13
+pydantic==2.5.0
 
-# Data Processing & Validation
-great-expectations==0.18.8
-evidently==0.4.11
-pandera==0.17.2
+# Machine Learning
+scikit-learn==1.3.2
+xgboost==2.0.2
+lightgbm==4.1.0
+numpy==1.24.3
+pandas==2.0.3
 
-# MLOps & Experiment Tracking
-mlflow==2.8.1
-dvc[azure]==3.32.0
-wandb==0.16.1
-
-# Data Sources
-kaggle==1.5.16
-opendatasets==0.1.22
-
-# Testing & Quality
-pytest==7.4.3
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-black
-flake8==6.1.0
-mypy==1.7.1
-isort==5.12.0
-bandit==1.7.5
-
-# Monitoring & Observability
-prometheus-client==0.19.0
-grafana-api==1.0.3
-psutil==5.9.6
-
-# Security & Secrets
-python-dotenv==1.0.0
-cryptography==41.0.7
-
-# Utilities
-click==8.1.7
-tqdm==4.66.1
+# Data Processing
 joblib==1.3.2
+
+# API Documentation
+python-multipart==0.0.6
+
+# Monitoring & Logging
+python-json-logger==2.0.7
+
+# HTTP Client
+httpx==0.25.2
 requests==2.31.0
