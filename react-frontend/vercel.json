@@ -23,11 +23,11 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://helios-grid-api.vercel.app"
+    "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space"
   },
   "build": {
     "env": {
-      "REACT_APP_API_URL": "https://helios-grid-api.vercel.app"
+      "REACT_APP_API_URL": "https://sankeashook-helios-gridenergy-prediction.hf.space"
     }
   }
 }
