@@ -1,0 +1,136 @@
+{
+  "dashboard": {
+    "title": "Helios-Grid MLOps Monitoring",
+    "uid": "helios-grid-mlops",
+    "timezone": "utc",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Model Prediction Latency (p50/p95/p99)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {"expr": "histogram_quantile(0.50, rate(prediction_latency_seconds_bucket[5m]))", "legendFormat": "p50"},
+          {"expr": "histogram_quantile(0.95, rate(prediction_latency_seconds_bucket[5m]))", "legendFormat": "p95"},
+          {"expr": "histogram_quantile(0.99, rate(prediction_latency_seconds_bucket[5m]))", "legendFormat": "p99"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Prediction Request Rate",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {"expr": "rate(prediction_requests_total[5m])", "legendFormat": "requests/sec"},
+          {"expr": "rate(prediction_errors_total[5m])", "legendFormat": "errors/sec"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Data Drift Score",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 8},
+        "targets": [
+          {"expr": "model_drift_score", "legendFormat": "drift_score"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 0.1},
+                {"color": "red", "value": 0.3}
+              ]
+            },
+            "max": 1,
+            "min": 0
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Model RMSE (Production)",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 8},
+        "targets": [
+          {"expr": "model_rmse", "legendFormat": "RMSE"}
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 0.12},
+                {"color": "red", "value": 0.2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Training Job Cost ($USD)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {"expr": "training_job_cost_usd", "legendFormat": "cost per job"},
+          {"expr": "training_budget_remaining_usd", "legendFormat": "budget remaining"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Feature Drift by Column",
+        "type": "heatmap",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {"expr": "feature_drift_score", "legendFormat": "{{feature}}"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Model Version & Stage",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {"expr": "model_version_info", "legendFormat": "{{model_name}} v{{version}} ({{stage}})"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "GPU Utilization",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {"expr": "gpu_utilization_percent", "legendFormat": "GPU {{gpu_id}}"},
+          {"expr": "gpu_memory_used_bytes / gpu_memory_total_bytes * 100", "legendFormat": "Memory {{gpu_id}}"}
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Airflow DAG Run Status",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [
+          {"expr": "airflow_dag_run_duration_seconds{dag_id='helios_grid_training_pipeline'}", "legendFormat": "Training Pipeline"},
+          {"expr": "airflow_dag_run_duration_seconds{dag_id='helios_grid_monitoring'}", "legendFormat": "Monitoring Pipeline"}
+        ]
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Model Deployments",
+          "datasource": "Prometheus",
+          "expr": "model_deployment_event",
+          "tagKeys": "version,stage"
+        },
+        {
+          "name": "Drift Alerts",
+          "datasource": "Prometheus",
+          "expr": "ALERTS{alertname='DataDriftDetected'}"
+        }
+      ]
+    }
+  }
+}

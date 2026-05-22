@@ -1,0 +1,55 @@
+groups:
+  - name: helios_grid_model_alerts
+    rules:
+      - alert: DataDriftDetected
+        expr: model_drift_score > 0.2
+        for: 30m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "Data drift detected in production model"
+          description: "Drift score {{ $value }} exceeds threshold 0.2 for 30 minutes"
+
+      - alert: ModelPerformanceDegraded
+        expr: model_rmse > 0.18
+        for: 1h
+        labels:
+          severity: critical
+          team: mlops
+        annotations:
+          summary: "Model RMSE degraded beyond threshold"
+          description: "Production RMSE {{ $value }} exceeds 0.18 for 1 hour. Consider retraining."
+
+      - alert: PredictionLatencyHigh
+        expr: histogram_quantile(0.95, rate(prediction_latency_seconds_bucket[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prediction latency p95 exceeds 500ms"
+
+      - alert: PredictionErrorRateHigh
+        expr: rate(prediction_errors_total[5m]) / rate(prediction_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prediction error rate exceeds 5%"
+
+      - alert: TrainingBudgetExceeded
+        expr: training_budget_remaining_usd < 50
+        for: 0m
+        labels:
+          severity: warning
+          team: mlops
+        annotations:
+          summary: "Training budget nearly exhausted (< $50 remaining)"
+
+      - alert: GPUUtilizationLow
+        expr: avg(gpu_utilization_percent) < 20
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "GPU utilization below 20% - consider scaling down"

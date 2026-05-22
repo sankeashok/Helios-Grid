@@ -1,9 +1,29 @@
 global:
-  scrape_interval: 5s
-  evaluation_interval: 5s
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert_rules.yml"
 
 scrape_configs:
   - job_name: "helios-grid-api"
     static_configs:
-      # host.docker.internal maps to localhost on the host machine
       - targets: ["host.docker.internal:3002"]
+    metrics_path: /metrics
+
+  - job_name: "helios-grid-model-metrics"
+    static_configs:
+      - targets: ["host.docker.internal:9091"]
+
+  - job_name: "airflow"
+    static_configs:
+      - targets: ["airflow-webserver:8080"]
+    metrics_path: /admin/metrics
+
+  - job_name: "mlflow"
+    static_configs:
+      - targets: ["mlflow:5000"]
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["host.docker.internal:9100"]
